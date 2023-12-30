@@ -1,7 +1,10 @@
 (ns core)
 
-(defmulti step (fn [input] (-> input :msg :type)))
+(defmulti step (fn [input] (-> input :msg :t)))
 
-(defn ->output [input]
+(defn output [input]
   {:model (-> input :model)
    :effects []})
+
+(defn add-effect [input f]
+  (update input :effects conj f))
