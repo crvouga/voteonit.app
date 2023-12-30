@@ -1,20 +1,20 @@
 (ns client
   (:require [reagent.dom :as rd] 
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [app.client]
+            [core]))
 
-(def state (r/atom {:count 0}))
+(def state (r/atom {:model (app.client/init)}))
 
-(defn- increment! []
-  (swap! state update :count inc))
+(defn dispatch! [msg]
+  (reset! state (core/step {:model (-> @state :model) :msg msg})))
 
-(defn- hello-world []
-  [:ul
-   [:li "Hello"]
-   [:button {:on-click increment!} (str "Count: " (-> @state :count))]
-   [:li {:style {:color "red"}} "World!"]])
+(defn view []
+  [app.client/view 
+   {:dispatch! dispatch! 
+    :model (:model @state)}])
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn init []
-  (println "Hello World")
-  (rd/render [hello-world] (js/document.getElementById "root")))
+(defn main []
+  (rd/render [view] (js/document.getElementById "root")))
 

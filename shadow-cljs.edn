@@ -12,5 +12,5 @@
  :builds
  {:client
   {:target :browser
-   :modules {:main {:init-fn client/init}}}}}
+   :modules {:main {:init-fn client/main}}}}}
    
