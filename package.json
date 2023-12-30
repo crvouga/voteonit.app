@@ -1,0 +1,14 @@
+{
+  "name": "voteonit.app",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "repl:browser": " npx shadow-cljs node-repl",
+    "repl:node": "npx shadow-cljs node-repl",
+    "watch:client": "npx shadow-cljs watch client",
+    "watch:server": "npx shadow-cljs watch server"
+  },
+  "devDependencies": {
+    "shadow-cljs": "2.26.2"
+  }
+}

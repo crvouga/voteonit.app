@@ -1,0 +1,19 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/dev"
+  "src/main"
+  "src/test"]
+
+ :dependencies
+ []
+
+ :builds
+ {:client
+  {:target :browser
+   :modules {:main {:init-fn client/init}}
+   }
+  
+  :server
+  {:target :node-script
+   :modules {:main {:init-fn server/init}}
+   }}}
