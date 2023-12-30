@@ -1,5 +1,6 @@
 (ns app.client
-  (:require [core :refer [step add-effect]]))
+  (:require [core :refer [step add-effect]]
+            [ui.button]))
 
 ;; 
 ;; 
@@ -26,8 +27,10 @@
 (defmethod step ::decrement [input]
   (-> input (update-count dec)))
 
+(def eff-say-hi (fn [] (println "Hi!")))
+
 (defmethod step ::say-hi [input]
-  (-> input (add-effect (fn [] (println "Hi!")))))
+  (-> input (add-effect eff-say-hi)))
 
 ;; 
 ;; 
@@ -38,10 +41,11 @@
 
 (defn view [input]
   (let [{:keys [dispatch! model]} input]
-    [:div
-     [:ul
-      [:li (str "Hello " (::count model) " times")]
-      [:button {:on-click #(dispatch! {:t ::say-hi})} "Say hi"]
-      [:button {:on-click #(dispatch! {:t ::increment})} "Increment"]
-      [:button {:on-click #(dispatch! {:t ::decrement})} "Decrement"]]]))
+    [:div.w-full.flex.flex-col.items-center.justify-center
+     {:style {:height "100dvh"}}
+     [:div.flex.flex-col.gap-4.w-full.max-w-md
+      [:p.text-3xl.font-bold (str "Hello " (::count model) " times")]
+      [ui.button/view {:text "Say hi" :on-click #(dispatch! {:t ::say-hi})}]
+      [ui.button/view {:text "Increment" :on-click #(dispatch! {:t ::increment})}]
+      [ui.button/view {:text "Decrement" :on-click #(dispatch! {:t ::decrement})}]]]))
   
