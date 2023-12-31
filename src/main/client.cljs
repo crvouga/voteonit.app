@@ -1,6 +1,7 @@
 (ns client
   (:require [reagent.dom :as rd] 
             [reagent.core :as r]
+            ["socket.io-client" :as socket-io]
             [ui.button]
             [auth.client]
             [wire.client]
@@ -37,14 +38,20 @@
 
 (add-watch output :run-effects (core/watch-handle-eff! dispatch!))
 
-(wire.client/start-web-socket!)
+(def is-localhost (= "localhost" (.-hostname js/window.location)))
 
-(defn root-view []
-  (let [state (-> @output :state)
-        input {:state state :dispatch! dispatch!}]
-    [view input]))
+(print "is-localhost" is-localhost)
+
+(def server-url (if  is-localhost "http://localhost:3000" ""))
+
+(defn root-view [] 
+  [view {:state (@output :state) 
+         :dispatch! dispatch!}])
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (rd/render [root-view] (js/document.getElementById "root")))
-
+  (println "client staring" (pr-str {:server-url server-url :is-localhost is-localhost}))
+  (let [socket (socket-io/io server-url)]
+    (println socket)
+    (.emit socket "client-connected")
+    (rd/render [root-view] (js/document.getElementById "root"))))

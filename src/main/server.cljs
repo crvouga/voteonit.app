@@ -4,13 +4,6 @@
             ["socket.io" :as socket-io]
             [wire.server]))
 
-;; 
-;; 
-;; 
-;; 
-;; 
-;; 
-
 (defn request-handler [req res]
   (println (-> req .-url))
   (.end res "hello")) 
@@ -32,7 +25,6 @@
 (def port-env (-> js/process.env .-PORT))
 (def port (if port-env (js/parseInt port-env) 3000))
 
-
 (defn on-disconnect [^js socket]
   (println "socket disconnected" socket))
 
@@ -44,9 +36,7 @@
   (println "starting server")
   (let [server (http/createServer serve-static-files)
         io (new socket-io/Server server 
-                {:cors {:origin "*"
-                        :methods ["GET" "POST" "OPTIONS"]
-                        :credentials true}})]
+                {:cors {:origin true}})]
     (.listen server port on-listen)
     (.on io "connection" on-connection)
     (vreset! server-ref server)))
