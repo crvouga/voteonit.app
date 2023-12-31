@@ -17,9 +17,12 @@
 
 (defn main [& args]
   (println "starting server")
-  (let [server (http/createServer serve-static-files)]
+  (let [server (http/createServer serve-static-files)
+        port-env (.-PORT (js/process.env))
+        port-fallback 3000
+        port (if port-env (js/parseInt port-env) port-fallback)]
 
-    (.listen server 3000
+    (.listen server port
       (fn [err]
         (if err
           (println "server start failed")

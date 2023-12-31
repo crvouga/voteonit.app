@@ -7,7 +7,9 @@
     "repl:node": "npx shadow-cljs node-repl",
     "watch:client": "npx shadow-cljs watch client",
     "watch:server": "npx shadow-cljs watch server",
-    "dev:server": "nodemon out/server/main.js"
+    "dev:server": "nodemon out/server/main.js",
+    "build": "npx shadow-cljs release client server",
+    "start": "node out/server/main.js"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
