@@ -20,6 +20,4 @@ pom.xml.asc
 .hg/
 
 .clj-kondo
-.clj-kondo/*
-
 out
