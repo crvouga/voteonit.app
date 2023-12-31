@@ -1,8 +1,12 @@
 (ns wire.server
-  (:require [core :refer [handle-eff! append-effect]]
+  (:require [core :refer [handle-effect! publish-event append-effect handle-msg]]
             ["socket.io" :as socket-io]
             [wire.core]
             [cljs.core.async :refer [chan put! <! go]]))
+
+(defmethod handle-msg ::client-connected [input]
+  (let [event (merge (:msg input) {:type :client-connected})]
+    (publish-event input event)))
 
 (defn send-to-client [input client-id & msgs]
   (append-effect input {:type ::send-to-client 
@@ -11,12 +15,12 @@
 
 (def to-client-msgs-chan (chan))
 
-(defmethod handle-eff! ::send-to-client [input] 
-  (put! to-client-msgs-chan (-> input :eff))
+(defmethod handle-effect! ::send-to-client [input] 
+  (put! to-client-msgs-chan (-> input :effect))
   input)
 
-(defmethod handle-eff! ::broadcast [input]
-  (print (-> input :eff)))
+(defmethod handle-effect! ::broadcast [input]
+  input)
 
 
 ;; 
@@ -68,11 +72,14 @@
 
 
 (defn listen-to-sever-msgs! [^js socket dispatch! client-id session-id]
-  (println "listen-to-sever-msgs!" client-id session-id)
   (.on socket "to-server-msgs"
        (fn [encoded-msgs]
          (doseq [msg (decode-msgs encoded-msgs client-id session-id)]
-           (dispatch! msg)))))
+           (dispatch! msg))))
+  
+  (dispatch! {:type ::client-connected 
+              :client-id client-id 
+              :session-id session-id}))
 
 
 (defn on-connect [dispatch! ^js socket]

@@ -3,7 +3,6 @@
             ["serve-static" :as serve-static]
             ["cors" :as cors]
             [core]
-            [cljs.core.async :refer [chan put! go <!]]
             ["express" :as express]
             [wire.server]
             [auth.server]))
@@ -79,7 +78,6 @@
 (def state (atom (initial-state)))
 
 (defn dispatch! [msg]
-  (println msg)
   (let [stepped (core/step! {:state @state :msg msg})]
     (reset! state (-> stepped :state))))
   

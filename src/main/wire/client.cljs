@@ -1,5 +1,5 @@
 (ns wire.client
-  (:require [core :refer [handle-eff! append-effect]]
+  (:require [core :refer [handle-effect! append-effect]]
             ["socket.io-client" :as socket-io]
             [wire.core]
             [cljs.core.async :refer [chan put! go <!]]))
@@ -10,8 +10,8 @@
 
 (def to-server-msgs-chan (chan))
 
-(defmethod handle-eff! ::send-to-server [input]
-  (put! to-server-msgs-chan (-> input :eff :msgs))
+(defmethod handle-effect! ::send-to-server [input]
+  (put! to-server-msgs-chan (-> input :effect :msgs))
   input)
   
 ;; 

@@ -1,5 +1,5 @@
 (ns server.email
-  (:require [core :refer [handle-eff! append-effect]]))
+  (:require [core :refer [handle-effect! append-effect]]))
 
 
 ;; 
@@ -29,6 +29,6 @@
                      :provider :send-grid
                      :email email}))
   
-(defmethod handle-eff! :send-email [input]
+(defmethod handle-effect! :send-email [input]
   (send-email! input))
 

@@ -44,22 +44,49 @@
         sent-email (server.email/send-email input login-link-email)]
     sent-email))
 
-(defn assoc-guest-session [{:keys [state msg] :as input}]
-  (let [client-id (-> msg :client-id)
-        session-id (-> msg :session-id)]
-    (println "assoc-guest-session" client-id session-id)
-    
-    input))
+(defn generate-user-id! []
+  (str "user-id:" (rand-int 1000000)))
+
+(defn generate-guest-account []
+  (let [user-id (generate-user-id!)]
+    {:user-id user-id
+     :username (str "Guest " user-id)}))
+
+(defn assoc-session [input user-account]
+  (let [{:keys [msg]} input
+        {:keys [client-id session-id]} msg
+        {:keys [user-id]} user-account]
+    (-> input
+        (update-in [:state ::session-id-by-client-id] assoc client-id session-id)
+        (update-in [:state ::session-ids] conj session-id)
+        (update-in [:state ::user-id-by-session-id] assoc session-id user-id)
+        (update-in [:state ::accounts-by-user-id] assoc user-id user-account))))
+
+#_(defn dissoc-session [input]
+  (let [{:keys [input msg]} input
+        {:keys [client-id session-id]} msg]
+    (-> input
+        (update-in [:state ::session-id-by-client-id] dissoc client-id)
+        (update-in [:state ::session-ids] disj session-id)
+        (update-in [:state ::user-id-by-session-id] dissoc session-id))))
+
+(defn assoc-new-guest-session [input]
+  (let [guest-account (generate-guest-account)]
+    (assoc-session input guest-account)))
 
 (defn send-client-auth-state [input]
-  (let [client-id (-> input :msg :client-id) 
-        to-client {:type auth.core/client-auth-state
-                    :user-id nil}
+  (let [session-id (-> input :msg :session-id)
+        client-id (-> input :msg :client-id)
+        user-id (-> input :state ::user-id-by-session-id (get session-id))
+        account (-> input :state ::accounts-by-user-id (get user-id))
+        to-client (merge account {:type auth.core/current-user-account})
         output (wire.server/send-to-client input client-id to-client)]
     output))
 
 (defmethod handle-msg auth.core/user-clicked-continue-as-guest [input] 
-   (-> input assoc-guest-session send-client-auth-state))
+   (-> input 
+       assoc-new-guest-session 
+       send-client-auth-state))
 
 ;; 
 ;; 
@@ -70,8 +97,12 @@
 
 (defmulti handle-event (fn [input] (-> input :msg :type)))
 
-(register-event-handler! handle-event)
+(defmethod handle-event :client-connected [input] 
+  (-> input 
+      send-client-auth-state))
 
-(defmethod handle-event :wire/client-connected [input] 
-  (-> input send-client-auth-state))
+(defmethod handle-event :default [input]
+  (println "Unhandled event" (-> input :msg :type))
+  input)
   
+(register-event-handler! handle-event)

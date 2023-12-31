@@ -4,4 +4,4 @@
 
 (def user-clicked-continue-as-guest ::user-clicked-continue-as-guest)
 
-(def client-auth-state ::client-auth-state)
+(def current-user-account ::client-auth-account)
