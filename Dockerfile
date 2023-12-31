@@ -24,4 +24,4 @@ RUN npx shadow-cljs release client server
 EXPOSE 3000
 
 # Command to start the Node.js server
-command ["node", "out/server/main.js"]
+CMD ["node", "out/server/main.js"]
