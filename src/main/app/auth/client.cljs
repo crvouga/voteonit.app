@@ -1,6 +1,7 @@
 (ns app.auth.client
   (:require [ui.textfield]
             [ui.button]
+            [app.auth.core]
             [core :refer [step]]))
 
 ;; 
@@ -16,11 +17,17 @@
 (defmethod step ::user-inputted-email [input]
   (assoc-in input  [:model ::email] (-> input :msg :email)))
 
+(defn send-to-server [input to-server]
+  (let [eff (fn [] (println "todo" to-server))
+        output (core/add-effect input eff)]
+    output))
 
 (defmethod step ::clicked-send-login-link [input]
-  (let [email (-> input :model ::email)]
-    (println "clicked-send-login-link" email)
-    input))
+  (let [email (-> input :model ::email)
+        to-server {:type app.auth.core/user-clicked-send-login-link-email :email email}
+        output (send-to-server input to-server)] 
+    (println "send to server: " app.auth.core/user-clicked-send-login-link-email email)
+    output))
 
 ;; 
 ;; 
