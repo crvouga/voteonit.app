@@ -2,6 +2,7 @@
   (:require [reagent.dom :as rd] 
             [reagent.core :as r]
             [ui.button]
+            [ui.spinner]
             [auth.client]
             [wire.client]
             [core]))
@@ -36,7 +37,8 @@
   [auth.client/view-account-screen input])
 
 (defmethod view-main :default []
-  [:div "loading"])
+  [:div.w-full.h-full.flex.flex-col.items-center.justify-center 
+   [ui.spinner.view]])
 
 (defn view [{:keys [] :as input}] 
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
