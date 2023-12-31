@@ -27,8 +27,35 @@
 
 (def server-url (if  is-localhost "http://localhost:3000" ""))
 
+(defn get-session-id! []
+  (js->clj (.getItem js/localStorage "session-id")))
+
+(defn set-session-id! [session-id]
+  (when (string? session-id)
+    (.setItem js/localStorage "session-id" session-id)))
+
+(defn send-session-id! [^js socket]
+  (let [session-id (get-session-id!)]
+    (println "send-session-id!" session-id)
+    (.emit socket "session-id" session-id)))
+
+(defn recieved-session-id! [^js socket session-id]
+  (println "recieved-session-id!" session-id)
+  (set-session-id! session-id)
+  (send-session-id! socket))
+
 (defn subscriptions! [dispatch!]
-  (let [socket (socket-io/io server-url)]
+  (let [socket-config {:query {:session-id (get-session-id!)}}
+        socket (socket-io/io server-url (clj->js socket-config))] 
+    
+    (.on socket "connect"
+         (fn []
+           (send-session-id! socket)))
+    
+    (.on socket "session-id"  
+         (fn [session-id]
+           (recieved-session-id! socket session-id)))
+    
     (.on socket "to-client-msgs" 
          (fn [encoded-msgs]
            (let [msgs (wire.core/edn-decode encoded-msgs)]

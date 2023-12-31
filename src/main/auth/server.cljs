@@ -45,13 +45,8 @@
     sent-email))
 
 (defn assoc-guest-session [{:keys [state msg]}]
-  (let [{:keys [session-id client-id]} msg
-        new-guest-account {:user-id session-id}]
-    (-> state
-        (update ::session-id-by-client-id assoc client-id session-id)
-        (update ::user-id-by-session-id dissoc session-id nil)
-        (update ::session-ids conj session-id)
-        (update ::accounts-by-user-id assoc session-id new-guest-account))))
+  (let [client-id (-> msg :client-id)]
+    (-> state)))
 
 (defn send-client-auth-state [input]
   (let [client-id (-> input :msg :client-id) 

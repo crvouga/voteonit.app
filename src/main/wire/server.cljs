@@ -54,25 +54,41 @@
 (defn on-disconnect [client-id]
   (swap! sockets-by-client-id dissoc client-id))
 
-(defn decode-msgs [encoded-msgs client-id]
+(defn decode-msgs [encoded-msgs client-id session-id]
   (let [decoded (wire.core/edn-decode encoded-msgs)
-        decoded-with-client-id (map #(assoc % :client-id client-id) decoded)]
-    decoded-with-client-id))
+        assoc-ids (fn [msg] (assoc msg :client-id client-id :session-id session-id))
+        decoded-with-ids (map assoc-ids decoded)]
+    decoded-with-ids))
 
 (defn generate-client-id! []
   (str "client-id:" (rand-int 100000)))
 
+(defn generate-session-id! []
+  (str "session-id:" (rand-int 100000)))
+
+
+(defn listen-to-sever-msgs! [^js socket dispatch! client-id session-id]
+  (println "listen-to-sever-msgs!" client-id session-id)
+  (.on socket "to-server-msgs"
+       (fn [encoded-msgs]
+         (doseq [msg (decode-msgs encoded-msgs client-id session-id)]
+           (dispatch! msg)))))
+
+
 (defn on-connect [dispatch! ^js socket]
   (let [client-id (generate-client-id!)]
+    
     (swap! sockets-by-client-id assoc client-id socket)
     
-    (.on socket "disconnect" #(on-disconnect client-id))
+    (.on socket "session-id"
+         (fn [session-id]
+           (println "recieved session-id" session-id)
+           (if (not (string? session-id))
+             (.emit socket "session-id" (generate-session-id!))
+             (listen-to-sever-msgs! socket dispatch! client-id session-id))))
 
-    (.on socket "to-server-msgs"
-         (fn [encoded-msgs]
-           (doseq [msg (decode-msgs encoded-msgs client-id)]
-             (dispatch! msg))))))
-    
+    (.on socket "disconnect" #(on-disconnect client-id))))
+
     
 (def socket-config {:cors {:origin "*"
                            :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
