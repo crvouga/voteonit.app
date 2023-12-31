@@ -1,11 +1,11 @@
 (ns wire.server
-  (:require [core :refer [handle-eff! add-eff]]
+  (:require [core :refer [handle-eff! append-effect]]
             ["socket.io" :as socket-io]
             [wire.core]
             [cljs.core.async :refer [chan put! go <!]]))
 
 (defn send-to-client [input & msgs]
-  (add-eff input {:type ::send-to-client :msgs msgs}))
+  (append-effect input {:type ::send-to-client :msgs msgs}))
 
 (defmethod handle-eff! ::send-to-client [input]
   (print "send this to client", (pr-str (-> input :eff :msgs) ))

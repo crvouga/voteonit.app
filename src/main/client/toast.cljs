@@ -1,5 +1,5 @@
 (ns client.toast
-  (:require [core :refer [handle-msg add-eff handle-cmd]]
+  (:require [core :refer [handle-msg append-effect handle-cmd]]
             [client.core]))
 
 
@@ -12,7 +12,7 @@
 (defmethod handle-cmd :show-toast [input]
   (let [message (-> input :cmd :message)]
     (-> input (update ::toast assoc :message message)
-              (add-eff :toast-time-ellaspsed 5000))))
+              (append-effect :toast-time-ellaspsed 5000))))
 
 (defn view [{:keys [state]}]
   (let [toast (-> state ::toast)]

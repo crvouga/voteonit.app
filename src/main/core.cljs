@@ -36,7 +36,7 @@
 ;; 
 ;; 
 
-(defn add-eff [input eff]
+(defn append-effect [input eff]
   (update input :effects conj eff))
 
 (defn add-cmd [input cmd]
@@ -104,7 +104,7 @@
     (handle-event {:event event :state {}})))
 
 (defn publish [input event]
-  (add-eff input {:type ::publish :event event}))
+  (append-effect input {:type ::publish :event event}))
 
 (defmethod handle-eff! ::publish [input]
     (publish! (-> input :eff :event)))
