@@ -3,7 +3,7 @@
             [ui.button]
             [auth.core]
             [wire.client]
-            [core :refer [handle-msg add-cmd handle-cmd]]))
+            [core :refer [handle-msg]]))
 
 ;; 
 ;; 
@@ -21,12 +21,12 @@
 
 (defmethod handle-msg ::clicked-send-login-link [input]
   (let [email (-> input :state ::email)
-        to-server (merge {:email email} (auth.core/user-clicked-send-login-link-email))
+        to-server {:type auth.core/user-clicked-send-login-link-email :email email}
         output (wire.client/send-to-server input to-server)] 
     output))
 
 (defmethod handle-msg ::clicked-continue-as-guest [input]
-  (let [to-server (auth.core/user-clicked-continue-as-guest)
+  (let [to-server {:type auth.core/user-clicked-continue-as-guest}
         output (wire.client/send-to-server input to-server)] 
     output))
 
@@ -45,6 +45,7 @@
    [ui.textfield/view 
     {:label "Email"
      :value (::email state) 
+     :type :email
      :on-value #(dispatch! {:type ::user-inputted-email :email %})}]
    
    [ui.button/view 

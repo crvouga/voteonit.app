@@ -1,19 +1,49 @@
 (ns server
   (:require ["http" :as http]
             ["serve-static" :as serve-static]
-            ["socket.io" :as socket-io]
             ["cors" :as cors]
+            [core]
+            [cljs.core.async :refer [chan put! go <!]]
             ["express" :as express]
-            [wire.server]))
+            [wire.server]
+            [auth.server]))
+
+
+;; 
+;; 
+;; 
+;; State
+;; 
+;; 
+;; 
+
+
+(defn initial-state []
+  (merge
+   (auth.server/initial-state)))
+
+
+
+;; 
+;; 
+;; 
+;; Server
+;; 
+;; 
+;; 
 
 (def app (express))
+
 
 (def cors-config {:origin "*"
                   :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
                   :optionsSuccessStatus 200
                   :credentials false})
-
 (.use app (cors (clj->js cors-config)))
+
+;; 
+;; Static files
+;; 
 
 (def public-path "./public")
 (def serve-static-middleware (serve-static public-path))
@@ -22,22 +52,13 @@
 (defn request-handler [_req res]
   (println "request-handler")
   (.end res "hello from server"))
-
 (.get app "*" request-handler)
 
+;; 
+;; Http Server
+;; 
+
 (def http-server (http/createServer app))
-
-(def socket-config {:cors {:origin "*"
-                           :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
-                           :credentials false}})
-
-(def io (new socket-io/Server http-server (clj->js socket-config)))
-
-(defn on-connection [^js socket]
-  (println "socket connected" socket)
-  (.on socket "disconnect" #(println "socket disconnected" socket)))
-
-(.on io "connection" on-connection)
 
 (defonce server-ref (volatile! nil))
 
@@ -49,14 +70,37 @@
     (println "server start failed" err)
     (println "http server running on port" port)))
 
+;; 
+;; 
+;; Main
+;; 
+;; 
+
+(def state (atom (initial-state)))
+
+(defn dispatch! [msg]
+  (println msg)
+  (let [stepped (core/step! {:state @state :msg msg})]
+    (reset! state (-> stepped :state))))
+  
+(go
+  (while true
+    (let [msgs (<! wire.server/to-server-msgs-chan)]
+      (doseq [msg msgs]
+        (dispatch! msg)))))
+
+
 (defn main []
   (println "[main] server starting")
   (.listen http-server port on-listen)
-  #_(vreset! server-ref http-server))
+  (wire.server/attach-web-sockets! http-server)
+  (vreset! server-ref http-server))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn start []
   (main))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn stop [done]
   (println "server stopping")
   (let [on-close (fn [err]

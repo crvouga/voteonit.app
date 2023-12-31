@@ -67,7 +67,8 @@
     output))
 
 (defmethod handle-msg auth.core/user-clicked-continue-as-guest [input] 
-   (-> input assoc-guest-session send-client-auth-state))
+   (println "user-clicked-continue-as-guest" input)
+   input)
 
 ;; 
 ;; 
