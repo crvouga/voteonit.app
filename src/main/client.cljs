@@ -10,12 +10,7 @@
   (println msg)
   (reset! state (core/step {:model (-> @state :model) :msg msg})))
 
-(defn run-effects [_ _ _ new-state]
-  (let [new-effects (-> new-state :effects)]
-    (doseq [eff new-effects] 
-      (eff dispatch!))))
-
-(add-watch state :run-effects run-effects)
+(add-watch state :run-effects (core/run-effects! dispatch!))
 
 (defn view []
   [app.client/view 
