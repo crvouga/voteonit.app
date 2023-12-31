@@ -43,15 +43,9 @@
 ;; 
 ;; 
 
-(defn view [input]
-  (let [{:keys [dispatch! model]} input]
-    [:div.w-full.flex.flex-col.items-center.justify-center
-     {:style {:height "100dvh"}}
-     [:div.flex.flex-col.gap-4.w-full.max-w-md
-      [:pre (pr-str model)]
-      [app.auth.client/view-login-page input]
-      [:p.text-3xl.font-bold (str "Hello " (::count model) " times")]
-      [ui.button/view {:text "Say hi" :on-click #(dispatch! {:type ::say-hi})}]
-      [ui.button/view {:text "Increment" :on-click #(dispatch! {:type ::increment})}]
-      [ui.button/view {:text "Decrement" :on-click #(dispatch! {:type ::decrement})}]]]))
+(defn view [{:keys [] :as input}] 
+   [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-50.overflow-hidden
+    {:style {:height "100dvh"}}
+    [:div.flex.flex-col.gap-4.w-full.max-w-md
+     [app.auth.client/view-login-page input]]])
   
