@@ -1,15 +1,43 @@
 (ns server
-  (:require [core]))
+  (:require ["http" :as http]
+            ["express" :as express]
+            ["serve-static" :as serve-static]))
 
-(def state (atom {:model {}}))
+(defn request-handler [req res]
+  (.end res "hello"))
 
-(defn dispatch! [msg]
-  (println msg)
-  (reset! state (core/step {:model (-> @state :model) :msg msg})))
+(defn serve-static-files [req res]
+  (let [public-path "./public" ; Adjust the path to your public directory
+        serve-static-middleware (serve-static public-path)
+        req-handler (fn [] (request-handler req res))]
+    (serve-static-middleware req res req-handler)))
 
-(add-watch state :run-effects (core/run-effects! dispatch!))
+(defonce server-ref
+  (volatile! nil))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn main []
-  (println "Hello from ClojureScript!"))
+(defn main [& args]
+  (println "starting server")
+  (let [server (http/createServer serve-static-files)]
 
+    (.listen server 3000
+      (fn [err]
+        (if err
+          (println "server start failed")
+          (println "http server running on port 3000"))
+        ))
+
+    (vreset! server-ref server)))
+
+(defn start []
+  (println "start called")
+  (main))
+
+(defn stop [done]
+  (println "stop called")
+  (when-some [srv @server-ref]
+    (.close srv
+      (fn [err]
+        (println "stop completed" err)
+        (done)))))
+
+(println "__filename" js/__filename)

@@ -6,13 +6,17 @@
     "repl:browser": " npx shadow-cljs node-repl",
     "repl:node": "npx shadow-cljs node-repl",
     "watch:client": "npx shadow-cljs watch client",
-    "watch:server": "npx shadow-cljs watch server"
+    "watch:server": "npx shadow-cljs watch server",
+    "dev:server": "nodemon out/server/main.js"
   },
   "devDependencies": {
+    "nodemon": "^3.0.2",
     "shadow-cljs": "2.26.2"
   },
   "dependencies": {
+    "express": "^4.18.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "server-static": "^2.0.5"
   }
 }

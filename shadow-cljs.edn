@@ -12,5 +12,12 @@
  :builds
  {:client
   {:target :browser
-   :modules {:main {:init-fn client/main}}}}}
+   :modules {:main {:init-fn client/main}}}
+  
+  :server
+  {:target :node-script
+   :main server/main
+   :output-to "out/server/main.js"
+   :devtools {:before-load-async server/stop 
+              :after-load server/start}}}}
    
