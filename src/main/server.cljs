@@ -1,9 +1,8 @@
 (ns server
   (:require ["http" :as http]
-            ["express" :as express]
             ["serve-static" :as serve-static]))
 
-(defn request-handler [req res]
+(defn request-handler [_req res]
   (.end res "hello"))
 
 (defn serve-static-files [req res]
@@ -27,10 +26,12 @@
     (.listen server port on-listen-cb)
     (vreset! server-ref server)))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn start []
   (println "start called")
   (main))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn stop [done]
   (println "stop called")
   (when-some [srv @server-ref]

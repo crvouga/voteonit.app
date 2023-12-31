@@ -10,7 +10,7 @@
   (println msg)
   (reset! state (core/handle-msg {:state (-> @state :state) :msg msg})))
 
-(add-watch state :run-effects (core/watch-handle-eff! dispatch!))
+(add-watch state :run-effects (core/watch-handle-effect! dispatch!))
 
 (defn view []
   [app.client/view 
