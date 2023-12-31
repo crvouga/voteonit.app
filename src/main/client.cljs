@@ -3,6 +3,7 @@
             [reagent.core :as r]
             [ui.button]
             [auth.client]
+            [wire.client]
             [core]))
 
 
@@ -36,6 +37,7 @@
 
 (add-watch output :run-effects (core/watch-handle-eff! dispatch!))
 
+(wire.client/start-web-socket!)
 
 (defn root-view []
   (let [state (-> @output :state)
