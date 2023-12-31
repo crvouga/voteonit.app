@@ -1,6 +1,5 @@
 (ns app.client
-  (:require [core :refer [step add-effect]]
-            [app.auth.client]
+  (:require [app.auth.client]
             [ui.button]))
 
 ;; 
@@ -13,28 +12,8 @@
 (defn init [] 
   (merge
    (app.auth.client/init)
-   {::count 0}))
+   {}))
 
-;; 
-;; 
-;; 
-;; 
-;; 
-;; 
-
-(defn update-count [input f]
-  (-> input (update-in [:model ::count] f)))
-
-(defmethod step ::increment [input]
-  (-> input (update-count inc)))
-
-(defmethod step ::decrement [input]
-  (-> input (update-count dec)))
-
-(def eff-say-hi (fn [] (println "Hi!")))
-
-(defmethod step ::say-hi [input]
-  (-> input (add-effect eff-say-hi)))
 
 ;; 
 ;; 

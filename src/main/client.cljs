@@ -4,18 +4,18 @@
             [app.client]
             [core]))
 
-(def state (r/atom {:model (app.client/init)}))
+(def state (r/atom {:state (app.client/init)}))
 
 (defn dispatch! [msg]
   (println msg)
-  (reset! state (core/step {:model (-> @state :model) :msg msg})))
+  (reset! state (core/handle-msg {:state (-> @state :state) :msg msg})))
 
-(add-watch state :run-effects (core/run-effects! dispatch!))
+(add-watch state :run-effects (core/watch-handle-eff! dispatch!))
 
 (defn view []
   [app.client/view 
    {:dispatch! dispatch! 
-    :model (:model @state)}])
+    :state (:state @state)}])
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
