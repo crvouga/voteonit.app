@@ -1,7 +1,9 @@
 (ns auth.core)
 
-(def user-clicked-send-login-link-email ::user-clicked-send-login-link-email)
+(defn user-clicked-send-login-link-email []
+  {:type ::user-clicked-send-login-link-email})
 
-(def user-clicked-continue-as-guest ::user-clicked-continue-as-guest)
+(defn user-clicked-continue-as-guest [] 
+  {:type ::user-clicked-continue-as-guest})
 
 (def client-auth-state ::client-auth-state)

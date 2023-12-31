@@ -44,10 +44,10 @@
         sent-email (server.email/send-email input login-link-email)]
     sent-email))
 
-(defn assoc-guest-session [{:keys [model msg]}]
+(defn assoc-guest-session [{:keys [state msg]}]
   (let [{:keys [session-id client-id]} msg
         new-guest-account {:user-id session-id}]
-    (-> model
+    (-> state
         (update ::session-id-by-client-id assoc client-id session-id)
         (update ::user-id-by-session-id dissoc session-id nil)
         (update ::session-ids conj session-id)

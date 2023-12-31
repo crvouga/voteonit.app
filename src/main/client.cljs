@@ -25,16 +25,24 @@
 ;; 
 ;; 
 
-(def state (r/atom {:state (initial-state)}))
+(def output (r/atom {:state (initial-state)}))
 
 (defn dispatch! [msg]
   (println msg)
-  (reset! state (core/handle-msg {:state (-> @state :state) :msg msg})))
+  (let [state (-> @output :state)
+        input {:state state :msg msg}
+        new-output (core/handle-msg input)]
+    (reset! output new-output)))
 
-(add-watch state :run-effects (core/watch-handle-eff! dispatch!))
+(add-watch output :run-effects (core/watch-handle-eff! dispatch!))
 
+
+(defn root-view []
+  (let [state (-> @output :state)
+        input {:state state :dispatch! dispatch!}]
+    [view input]))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (rd/render [view {:dispatch! dispatch! :state (:state @state)}] (js/document.getElementById "root")))
+  (rd/render [root-view] (js/document.getElementById "root")))
 

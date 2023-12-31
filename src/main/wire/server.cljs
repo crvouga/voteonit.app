@@ -8,7 +8,7 @@
   (add-eff input {:type ::broadcast :msgs msgs}))
 
 (defmethod handle-eff! ::send-to-client [input]
-  (print (-> input :effect)))
+  (print (-> input :eff)))
 
 (defmethod handle-eff! ::broadcast [input]
-  (print (-> input :effect)))
+  (print (-> input :eff)))

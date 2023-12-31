@@ -30,9 +30,10 @@
 (defn watch-handle-eff! [dispatch!]
   (fn [_ _ _ new-state]
     (let [new-effects (-> new-state :eff)
-          model (-> new-state :state)]
+          state (-> new-state :state)]
       (doseq [effect new-effects]
-        (handle-eff! {:dispatch! dispatch! :effect effect :state model})))))
+        (println "effect" effect)
+        (handle-eff! {:dispatch! dispatch! :eff effect :state state})))))
 
 
 ;; 
@@ -57,4 +58,4 @@
   (add-eff input {:type ::publish :event event}))
 
 (defmethod handle-eff! ::publish [input]
-    (publish! (-> input :effect :event)))
+    (publish! (-> input :eff :event)))

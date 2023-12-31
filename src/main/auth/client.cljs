@@ -16,22 +16,20 @@
   {::email ""})
 
 (defmethod handle-msg ::user-inputted-email [input]
+  (print (pr-str input))
   (assoc-in input  [:state ::email] (-> input :msg :email)))
 
 (defmethod handle-msg ::clicked-send-login-link [input]
   (let [email (-> input :state ::email)
-        to-server {:type auth.core/user-clicked-send-login-link-email :email email}
+        to-server (merge {:email email} (auth.core/user-clicked-send-login-link-email))
         output (wire.client/send-to-server input to-server)] 
     output))
 
 (defmethod handle-msg ::clicked-continue-as-guest [input]
-  (let [to-server {:type auth.core/user-clicked-continue-as-guest}
+  (let [to-server (auth.core/user-clicked-continue-as-guest)
         output (wire.client/send-to-server input to-server)] 
     output))
 
-(defmethod handle-cmd :logout [input] 
-  (add-cmd input {:type :show-toast :message "Logged out"}))
-
 
 ;; 
 ;; 
@@ -39,14 +37,14 @@
 ;; 
 ;; 
 
-(defn view-login-page [{:keys [model dispatch!]}] 
+(defn view-login-page [{:keys [state dispatch!]}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6
    
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
    [ui.textfield/view 
     {:label "Email"
-     :value (::email model) 
+     :value (::email state) 
      :on-value #(dispatch! {:type ::user-inputted-email :email %})}]
    
    [ui.button/view 
