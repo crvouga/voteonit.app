@@ -4,7 +4,7 @@
             [ui.button]
             [auth.client]
             [wire.client]
-            [cljs.core.async :refer [chan put! go <!]]
+            [cljs.core.async :refer [go <!]]
             [core]))
 
 ;; 
@@ -50,11 +50,7 @@
   (let [stepped (core/step! {:state @state :msg msg})]
     (reset! state (-> stepped :state))))
 
-(go
-  (while true
-    (let [msgs (<! wire.client/to-client-msgs-chan)]
-      (doseq [msg msgs]
-        (dispatch! msg)))))
+
 
 (defn root-view [] 
   [view {:state @state
@@ -62,5 +58,5 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (wire.client/attach-web-socket!)
+  (wire.client/subscriptions! dispatch!)
   (rd/render [root-view] (js/document.getElementById "root")))

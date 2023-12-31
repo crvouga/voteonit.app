@@ -56,8 +56,7 @@
 (defn send-client-auth-state [input]
   (let [client-id (-> input :msg :client-id) 
         to-client {:type auth.core/client-auth-state
-                    :user-id nil
-                    :account nil}
+                    :user-id nil}
         output (wire.server/send-to-client input client-id to-client)]
     output))
 

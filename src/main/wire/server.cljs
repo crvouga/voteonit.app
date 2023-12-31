@@ -4,13 +4,12 @@
             [wire.core]
             [cljs.core.async :refer [chan put! <! go]]))
 
-(def to-server-msgs-chan (chan))
-(def to-client-msgs-chan (chan))
-
 (defn send-to-client [input client-id & msgs]
   (append-effect input {:type ::send-to-client 
                         :client-id client-id 
                         :msgs msgs}))
+
+(def to-client-msgs-chan (chan))
 
 (defmethod handle-eff! ::send-to-client [input] 
   (put! to-client-msgs-chan (-> input :eff))
@@ -29,17 +28,12 @@
 ;; 
 
 
-
-(defn generate-client-id! []
-  (str "client-id:" (rand-int 100000)))
-
 (def sockets-by-client-id (atom {}))
 
-(defn on-disconnect [client-id]
-  (swap! sockets-by-client-id dissoc client-id))
 
-(defn assoc-client-id [msgs client-id]
-  (map (fn [msg] (assoc msg :client-id client-id)) msgs))
+;; 
+;; Send messages to clients
+;; 
 
 (go
   (while true
@@ -47,29 +41,43 @@
           client-id (-> to-client :client-id)
           msgs (-> to-client :msgs)
           encoded-msgs (wire.core/edn-encode msgs)
-          socket (get @sockets-by-client-id client-id)]
+          socket (get @sockets-by-client-id client-id)
+          emit (fn [^js socket] (.emit socket "to-client-msgs" encoded-msgs))]
       (when socket
-        (.emit socket "to-client-msgs" encoded-msgs)))))
+        (emit socket)))))
 
-(defn on-connect [^js socket]
-  (let [client-id (generate-client-id!)] 
+;; 
+;; 
+;; 
+;; 
+
+(defn on-disconnect [client-id]
+  (swap! sockets-by-client-id dissoc client-id))
+
+(defn decode-msgs [encoded-msgs client-id]
+  (let [decoded (wire.core/edn-decode encoded-msgs)
+        decoded-with-client-id (map #(assoc % :client-id client-id) decoded)]
+    decoded-with-client-id))
+
+(defn generate-client-id! []
+  (str "client-id:" (rand-int 100000)))
+
+(defn on-connect [dispatch! ^js socket]
+  (let [client-id (generate-client-id!)]
     (swap! sockets-by-client-id assoc client-id socket)
-
-    (.on socket "to-server-msgs" 
-         (fn [encoded-msgs]
-           (let [msgs (wire.core/edn-decode encoded-msgs)
-                 msgs-with-ids (assoc-client-id msgs client-id)]
-             (println "received from client" msgs-with-ids)
-             (put! to-server-msgs-chan msgs-with-ids))))
     
-    (.on socket "disconnect" #(on-disconnect client-id))))
+    (.on socket "disconnect" #(on-disconnect client-id))
 
-
+    (.on socket "to-server-msgs"
+         (fn [encoded-msgs]
+           (doseq [msg (decode-msgs encoded-msgs client-id)]
+             (dispatch! msg))))))
+    
+    
 (def socket-config {:cors {:origin "*"
                            :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
                            :credentials false}})
 
-(defn attach-web-sockets! [^js http-server]
+(defn subscriptions! [^js http-server dispatch!] 
   (let [io (new socket-io/Server http-server (clj->js socket-config))]
-    (.on io "connection" on-connect)))
-
+    (.on io "connection" #(on-connect dispatch! %))))

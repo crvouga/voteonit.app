@@ -83,17 +83,10 @@
   (let [stepped (core/step! {:state @state :msg msg})]
     (reset! state (-> stepped :state))))
   
-(go
-  (while true
-    (let [msgs (<! wire.server/to-server-msgs-chan)]
-      (doseq [msg msgs]
-        (dispatch! msg)))))
-
-
 (defn main []
   (println "[main] server starting")
   (.listen http-server port on-listen)
-  (wire.server/attach-web-sockets! http-server)
+  (wire.server/subscriptions! http-server dispatch!)
   (vreset! server-ref http-server))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}

@@ -39,7 +39,7 @@
 (defn append-effect [input eff]
   (update input :effects conj eff))
 
-(defn add-cmd [input cmd]
+(defn append-command [input cmd]
   (update input :commands conj cmd))
 
 ;; 
@@ -94,6 +94,9 @@
 ;; 
 
 
+(defn publish-event [input event]
+  (append-effect input {:type ::publish :event event}))
+
 (def event-subscribers (atom #{}))
 
 (defn register-event-handler! [handle-event]
@@ -102,9 +105,6 @@
 (defn publish! [event]
   (doseq [handle-event @event-subscribers]
     (handle-event {:event event :state {}})))
-
-(defn publish [input event]
-  (append-effect input {:type ::publish :event event}))
 
 (defmethod handle-eff! ::publish [input]
     (publish! (-> input :eff :event)))
