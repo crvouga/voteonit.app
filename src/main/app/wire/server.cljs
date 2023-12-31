@@ -1,7 +1,5 @@
 (ns app.wire.server
-  (:require [core :refer [handle-eff! add-eff]]
-            [app.wire.core]
-            [app.server.email]))
+  (:require [core :refer [handle-eff! add-eff]]))
 
 (defn send-to-client [input & msgs]
   (add-eff input {:type ::send-to-client :msgs msgs}))
