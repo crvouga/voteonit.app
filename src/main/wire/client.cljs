@@ -1,4 +1,4 @@
-(ns app.wire.client
+(ns wire.client
   (:require [core :refer [handle-eff! add-eff]]))
 
 (defn send-to-server [input & msgs]

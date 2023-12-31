@@ -1,6 +1,6 @@
-(ns app.client.toast
+(ns client.toast
   (:require [core :refer [handle-msg add-eff handle-cmd]]
-            [app.client.core]))
+            [client.core]))
 
 
 (defn initial-state []

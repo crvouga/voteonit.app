@@ -1,8 +1,8 @@
-(ns app.auth.server 
+(ns auth.server 
   (:require [core :refer [handle-msg register-event-handler!]]
-            [app.auth.core]
-            [app.wire.server]
-            [app.server.email]))
+            [auth.core]
+            [wire.server]
+            [server.email]))
 
 
 ;; 
@@ -38,10 +38,10 @@
 ;; 
 ;; 
 
-(defmethod handle-msg app.auth.core/user-clicked-send-login-link-email [input]
+(defmethod handle-msg auth.core/user-clicked-send-login-link-email [input]
   (let [email (-> input :msg :email)
         login-link-email (make-login-login-email email)
-        sent-email (app.server.email/send-email input login-link-email)]
+        sent-email (server.email/send-email input login-link-email)]
     sent-email))
 
 (defn assoc-guest-session [{:keys [model msg]}]
@@ -59,14 +59,14 @@
         session-id (-> state ::session-id-by-client-id client-id)
         user-id (-> state ::user-id-by-session-id session-id)
         account (-> state ::accounts-by-user-id user-id)
-        auth-state {:type app.auth.core/client-auth-state
+        auth-state {:type auth.core/client-auth-state
                     :session-id session-id
                     :user-id user-id
                     :account account}
-        output (app.wire.server/send-to-client input client-id auth-state)]
+        output (wire.server/send-to-client input client-id auth-state)]
     output))
 
-(defmethod handle-msg app.auth.core/user-clicked-continue-as-guest [input] 
+(defmethod handle-msg auth.core/user-clicked-continue-as-guest [input] 
    (-> input assoc-guest-session send-client-auth-state))
 
 ;; 

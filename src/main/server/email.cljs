@@ -1,4 +1,4 @@
-(ns app.server.email
+(ns server.email
   (:require [core :refer [handle-eff! add-eff]]))
 
 

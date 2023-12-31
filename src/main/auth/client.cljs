@@ -1,8 +1,8 @@
-(ns app.auth.client
+(ns auth.client
   (:require [ui.textfield]
             [ui.button]
-            [app.auth.core]
-            [app.wire.client]
+            [auth.core]
+            [wire.client]
             [core :refer [handle-msg add-cmd handle-cmd]]))
 
 ;; 
@@ -20,13 +20,13 @@
 
 (defmethod handle-msg ::clicked-send-login-link [input]
   (let [email (-> input :state ::email)
-        to-server {:type app.auth.core/user-clicked-send-login-link-email :email email}
-        output (app.wire.client/send-to-server input to-server)] 
+        to-server {:type auth.core/user-clicked-send-login-link-email :email email}
+        output (wire.client/send-to-server input to-server)] 
     output))
 
 (defmethod handle-msg ::clicked-continue-as-guest [input]
-  (let [to-server {:type app.auth.core/user-clicked-continue-as-guest}
-        output (app.wire.client/send-to-server input to-server)] 
+  (let [to-server {:type auth.core/user-clicked-continue-as-guest}
+        output (wire.client/send-to-server input to-server)] 
     output))
 
 (defmethod handle-cmd :logout [input] 

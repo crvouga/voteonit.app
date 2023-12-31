@@ -1,10 +1,31 @@
 (ns client
   (:require [reagent.dom :as rd] 
             [reagent.core :as r]
-            [app.client]
+            [ui.button]
+            [auth.client]
             [core]))
 
-(def state (r/atom {:state (app.client/init)}))
+
+(defn initial-state [] 
+  (merge
+   (auth.client/init)))
+
+(defn view [{:keys [] :as input}] 
+   [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-50.overflow-hidden
+    {:style {:height "100dvh"}}
+    [:div.flex.flex-col.gap-4.w-full.max-w-md
+     [auth.client/view-login-page input]]])
+  
+
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(def state (r/atom {:state (initial-state)}))
 
 (defn dispatch! [msg]
   (println msg)
@@ -12,12 +33,8 @@
 
 (add-watch state :run-effects (core/watch-handle-eff! dispatch!))
 
-(defn view []
-  [app.client/view 
-   {:dispatch! dispatch! 
-    :state (:state @state)}])
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (rd/render [view] (js/document.getElementById "root")))
+  (rd/render [view {:dispatch! dispatch! :state (:state @state)}] (js/document.getElementById "root")))
 

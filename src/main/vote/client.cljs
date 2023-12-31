@@ -1,4 +1,4 @@
-(ns app.vote.client)
+(ns vote.client)
 
 
 (defn initial-state []
