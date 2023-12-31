@@ -44,9 +44,12 @@
         sent-email (server.email/send-email input login-link-email)]
     sent-email))
 
-(defn assoc-guest-session [{:keys [state msg]}]
-  (let [client-id (-> msg :client-id)]
-    (-> state)))
+(defn assoc-guest-session [{:keys [state msg] :as input}]
+  (let [client-id (-> msg :client-id)
+        session-id (-> msg :session-id)]
+    (println "assoc-guest-session" client-id session-id)
+    
+    input))
 
 (defn send-client-auth-state [input]
   (let [client-id (-> input :msg :client-id) 
@@ -56,7 +59,7 @@
     output))
 
 (defmethod handle-msg auth.core/user-clicked-continue-as-guest [input] 
-   (-> input send-client-auth-state))
+   (-> input assoc-guest-session send-client-auth-state))
 
 ;; 
 ;; 
