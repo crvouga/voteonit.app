@@ -11,8 +11,9 @@
 (def to-server-msgs-chan (chan))
 
 (defmethod handle-effect! ::send-to-server [input]
-  (put! to-server-msgs-chan (-> input :effect :msgs))
-  input)
+  (let [msgs (-> input :effect :msgs)]
+    (put! to-server-msgs-chan msgs)
+    input))
   
 ;; 
 ;; 

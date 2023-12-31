@@ -62,8 +62,8 @@
         (update-in [:state ::user-id-by-session-id] assoc session-id user-id)
         (update-in [:state ::accounts-by-user-id] assoc user-id user-account))))
 
-#_(defn dissoc-session [input]
-  (let [{:keys [input msg]} input
+(defn dissoc-session [input]
+  (let [{:keys [msg]} input
         {:keys [client-id session-id]} msg]
     (-> input
         (update-in [:state ::session-id-by-client-id] dissoc client-id)
@@ -79,14 +79,19 @@
         client-id (-> input :msg :client-id)
         user-id (-> input :state ::user-id-by-session-id (get session-id))
         account (-> input :state ::accounts-by-user-id (get user-id))
-        to-client (merge account {:type auth.core/current-user-account})
+        to-client {:type auth.core/current-user-account :account account}
         output (wire.server/send-to-client input client-id to-client)]
     output))
 
-(defmethod handle-msg auth.core/user-clicked-continue-as-guest [input] 
+(defmethod handle-msg auth.core/user-clicked-continue-as-guest [input]
    (-> input 
        assoc-new-guest-session 
        send-client-auth-state))
+
+(defmethod handle-msg auth.core/user-clicked-logout-button [input]
+  (-> input
+      dissoc-session
+      send-client-auth-state))
 
 ;; 
 ;; 

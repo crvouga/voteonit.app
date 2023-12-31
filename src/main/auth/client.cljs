@@ -14,7 +14,9 @@
 
 (defn initial-state []
   {::email ""
-   ::current-user-account nil})
+   ::current-user-account nil
+   ::loading? true
+   ::logging-out? false})
 
 (defmethod handle-msg ::user-inputted-email [input]
   (assoc-in input  [:state ::email] (-> input :msg :email)))
@@ -25,18 +27,27 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
-(defmethod handle-msg ::clicked-continue-as-guest [input]
+(defmethod handle-msg ::user-clicked-continue-as-guest [input]
   (let [to-server {:type auth.core/user-clicked-continue-as-guest}
         output (wire.client/send-to-server input to-server)] 
     output))
 
 (defmethod handle-msg auth.core/current-user-account [input]
-  (assoc-in input [:state ::current-user-account] (input :msg)))
+  (-> input
+      (assoc-in [:state ::current-user-account] (-> input :msg :account))
+      (assoc-in [:state ::loading?] false)
+      (assoc-in [:state ::logging-out?] false)))
 
 (defn to-auth-state [{:keys [state]}]
-  (if (-> state ::current-user-account :user-id string?)
-    :logged-in
-    :logged-out))
+  (cond
+    (-> state ::loading?) :loading
+    (-> state ::current-user-account nil? not) :logged-in
+    :else :logged-out))
+
+(defmethod handle-msg ::user-clicked-logout-button [input]
+  (-> input
+      (wire.client/send-to-server {:type auth.core/user-clicked-logout-button})
+      (assoc-in [:state ::logging-out?] true)))
 
 ;; 
 ;; 
@@ -44,7 +55,8 @@
 ;; 
 ;; 
 
-(defn view-login-page [{:keys [state dispatch!]}] 
+
+(defn view-login-screen [{:keys [state dispatch!]}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
@@ -56,10 +68,18 @@
    
    [ui.button/view 
     {:text "Send login link" 
-     :on-click #(dispatch! {:type ::clicked-send-login-link})}]
+     :on-click #(dispatch! {:type ::user-clicked-send-login-link})}]
    
    [:p.text-neutral-500.lowercase.text-lg "or"]
 
    [ui.button/view 
     {:text "Continue as guest"
-     :on-click #(dispatch! {:type ::clicked-continue-as-guest})}]])
+     :on-click #(dispatch! {:type ::user-clicked-continue-as-guest})}]])
+
+(defn view-account-screen [{:keys [state dispatch!]}] 
+  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
+   
+   [ui.button/view 
+    {:text "Logout"
+     :loading? (::logging-out? state)
+     :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])

@@ -30,10 +30,13 @@
 (defmulti view-main auth.client/to-auth-state)
 
 (defmethod view-main :logged-out [input]
-  [auth.client/view-login-page input])
+  [auth.client/view-login-screen input])
 
 (defmethod view-main :logged-in [input]
-  [:div "logged in"])
+  [auth.client/view-account-screen input])
+
+(defmethod view-main :default []
+  [:div "loading"])
 
 (defn view [{:keys [] :as input}] 
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
