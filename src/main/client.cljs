@@ -16,7 +16,7 @@
 
 (defn initial-state [] 
   (merge
-   (auth.client/init)))
+   (auth.client/initial-state)))
 
 ;; 
 ;; 
@@ -30,6 +30,7 @@
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
     {:style {:height "100dvh"}}
     [:div.flex.flex-col.gap-4.w-full.max-w-md
+     [:pre (pr-str (:state input))]
      [auth.client/view-login-page input]]])
   
 
@@ -49,7 +50,7 @@
     (reset! state (-> stepped :state))))
 
 (defn root-view [] 
-  [view {:state (@state :state) 
+  [view {:state @state
          :dispatch! dispatch!}])
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}

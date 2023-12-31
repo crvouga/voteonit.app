@@ -12,7 +12,7 @@
 (defmethod handle-cmd :show-toast [input]
   (let [message (-> input :cmd :message)]
     (-> input (update ::toast assoc :message message)
-              (append-effect :toast-time-ellaspsed 5000))))
+              (append-effect :toast-time-ellaspsed))))
 
 (defn view [{:keys [state]}]
   (let [toast (-> state ::toast)]

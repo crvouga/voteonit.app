@@ -12,11 +12,10 @@
 ;; 
 ;; 
 
-(defn init []
+(defn initial-state []
   {::email ""})
 
 (defmethod handle-msg ::user-inputted-email [input]
-  (print (pr-str input))
   (assoc-in input  [:state ::email] (-> input :msg :email)))
 
 (defmethod handle-msg ::clicked-send-login-link [input]
