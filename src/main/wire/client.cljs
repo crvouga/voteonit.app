@@ -5,5 +5,6 @@
   (add-eff input {:type ::send-to-server :msgs msgs}))
 
 (defmethod handle-eff! ::send-to-server [input]
-  (print "send this to server")
+  (print "send this to server", (pr-str (-> input :eff :msgs) ))
   (print (-> input :eff)))
+  
