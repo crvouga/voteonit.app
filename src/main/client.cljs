@@ -11,7 +11,7 @@
    (auth.client/init)))
 
 (defn view [{:keys [] :as input}] 
-   [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-50.overflow-hidden
+   [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
     {:style {:height "100dvh"}}
     [:div.flex.flex-col.gap-4.w-full.max-w-md
      [auth.client/view-login-page input]]])

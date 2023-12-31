@@ -53,7 +53,7 @@
     {:text "Send login link" 
      :on-click #(dispatch! {:type ::clicked-send-login-link})}]
    
-   [:p.text-neutral-800.text-lg "Or"]
+   [:p.text-neutral-500.lowercase.text-lg "or"]
 
    [ui.button/view 
     {:text "Continue as guest"
