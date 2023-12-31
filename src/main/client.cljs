@@ -7,12 +7,15 @@
 (def state (r/atom {:model (app.client/init)}))
 
 (defn dispatch! [msg]
+  (println msg)
   (reset! state (core/step {:model (-> @state :model) :msg msg})))
 
-(add-watch state :run-effects 
-           (fn [_ _ _ new-state]
-             (let [new-effects (-> new-state :effects)]
-               (doseq [eff new-effects] (eff dispatch!)))))
+(defn run-effects [_ _ _ new-state]
+  (let [new-effects (-> new-state :effects)]
+    (doseq [eff new-effects] 
+      (eff dispatch!))))
+
+(add-watch state :run-effects run-effects)
 
 (defn view []
   [app.client/view 
