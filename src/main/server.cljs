@@ -15,20 +15,17 @@
 (defonce server-ref
   (volatile! nil))
 
-(defn main [& args]
+(defn main []
   (println "starting server")
   (let [server (http/createServer serve-static-files)
-        port-env (.-PORT (js/process.env))
+        port-env (-> js/process.env .-PORT)
         port-fallback 3000
-        port (if port-env (js/parseInt port-env) port-fallback)]
-
-    (.listen server port
-      (fn [err]
-        (if err
-          (println "server start failed")
-          (println "http server running on port 3000"))
-        ))
-
+        port (if port-env (js/parseInt port-env) port-fallback)
+        on-listen-cb (fn [err]
+                       (if err
+                         (println "server start failed")
+                         (println "http server running on port 3000")))]
+    (.listen server port on-listen-cb)
     (vreset! server-ref server)))
 
 (defn start []
