@@ -19,8 +19,7 @@
   (println "starting server")
   (let [server (http/createServer serve-static-files)
         port-env (-> js/process.env .-PORT)
-        port-fallback 3000
-        port (if port-env (js/parseInt port-env) port-fallback)
+        port (if port-env (js/parseInt port-env) 3000)
         on-listen-cb (fn [err]
                        (if err
                          (println "server start failed")
