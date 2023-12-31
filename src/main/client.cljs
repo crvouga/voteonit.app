@@ -4,6 +4,7 @@
             [ui.button]
             [auth.client]
             [wire.client]
+            [cljs.core.async :refer [chan put! go <!]]
             [core]))
 
 ;; 
@@ -30,7 +31,7 @@
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
     {:style {:height "100dvh"}}
     [:div.flex.flex-col.gap-4.w-full.max-w-md
-     [:pre (pr-str (:state input))]
+     [:pre.text-sm (pr-str (:state input))]
      [auth.client/view-login-page input]]])
   
 
@@ -48,6 +49,12 @@
   (println msg)
   (let [stepped (core/step! {:state @state :msg msg})]
     (reset! state (-> stepped :state))))
+
+(go
+  (while true
+    (let [msgs (<! wire.client/to-client-msgs-chan)]
+      (doseq [msg msgs]
+        (dispatch! msg)))))
 
 (defn root-view [] 
   [view {:state @state

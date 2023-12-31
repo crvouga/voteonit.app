@@ -53,22 +53,16 @@
         (update ::session-ids conj session-id)
         (update ::accounts-by-user-id assoc session-id new-guest-account))))
 
-(defn send-client-auth-state [input ]
-  (let [client-id (-> input :msg :client-id)
-        state (-> input :state)
-        session-id (-> state ::session-id-by-client-id client-id)
-        user-id (-> state ::user-id-by-session-id session-id)
-        account (-> state ::accounts-by-user-id user-id)
-        auth-state {:type auth.core/client-auth-state
-                    :session-id session-id
-                    :user-id user-id
-                    :account account}
-        output (wire.server/send-to-client input client-id auth-state)]
+(defn send-client-auth-state [input]
+  (let [client-id (-> input :msg :client-id) 
+        to-client {:type auth.core/client-auth-state
+                    :user-id nil
+                    :account nil}
+        output (wire.server/send-to-client input client-id to-client)]
     output))
 
 (defmethod handle-msg auth.core/user-clicked-continue-as-guest [input] 
-   (println "user-clicked-continue-as-guest" input)
-   input)
+   (-> input send-client-auth-state))
 
 ;; 
 ;; 

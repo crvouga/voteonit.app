@@ -4,10 +4,12 @@
             [wire.core]
             [cljs.core.async :refer [chan put! go <!]]))
 
-(defn send-to-server [input & msgs]
-  (append-effect input {:type ::send-to-server :msgs msgs}))
-
 (def to-server-msgs-chan (chan))
+(def to-client-msgs-chan (chan))
+
+(defn send-to-server [input & msgs]
+  (append-effect input {:type ::send-to-server 
+                        :msgs msgs}))
 
 (defmethod handle-eff! ::send-to-server [input]
   (put! to-server-msgs-chan (-> input :eff :msgs))
@@ -28,10 +30,12 @@
 
 (defn attach-web-socket! []
   (let [socket (socket-io/io server-url)]
-    (.emit socket "client-connected")
-    (go
+    (.on socket "to-client-msgs" 
+         (fn [encoded-msgs]
+           (let [msgs (wire.core/edn-decode encoded-msgs)]
+             (put! to-client-msgs-chan msgs))))
+    (go 
       (while true
         (let [msgs (<! to-server-msgs-chan)
               encoded-msgs (wire.core/edn-encode msgs)]
-          (println "sending to server" encoded-msgs)
           (.emit socket "to-server-msgs" encoded-msgs))))))

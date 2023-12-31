@@ -13,7 +13,8 @@
 ;; 
 
 (defn initial-state []
-  {::email ""})
+  {::email ""
+   ::current-user-id nil})
 
 (defmethod handle-msg ::user-inputted-email [input]
   (assoc-in input  [:state ::email] (-> input :msg :email)))
@@ -29,6 +30,8 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
+(defmethod handle-msg auth.core/client-auth-state [input]
+  (assoc-in input [:state ::client-auth-state] (-> input :msg)))
 
 ;; 
 ;; 
@@ -38,7 +41,6 @@
 
 (defn view-login-page [{:keys [state dispatch!]}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6
-   
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
    [ui.textfield/view 
