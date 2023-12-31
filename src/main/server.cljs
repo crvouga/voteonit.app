@@ -2,57 +2,65 @@
   (:require ["http" :as http]
             ["serve-static" :as serve-static]
             ["socket.io" :as socket-io]
+            ["cors" :as cors]
+            ["express" :as express]
             [wire.server]))
 
-(defn request-handler [req res]
-  (println (-> req .-url))
-  (.end res "hello")) 
+(def app (express))
 
-(defn serve-static-files [req res]
-  (let [public-path "./public"
-        serve-static-middleware (serve-static public-path)
-        req-handler (fn [] (request-handler req res))]
-    (serve-static-middleware req res req-handler)))
+(def cors-config {:origin "*"
+                  :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
+                  :optionsSuccessStatus 200
+                  :credentials false})
 
-(defonce server-ref
-  (volatile! nil))
+(.use app (cors (clj->js cors-config)))
 
-(defn on-listen [err]
-  (if err
-    (println "server start failed")
-    (println "http server running on port 3000")))
+(def public-path "./public")
+(def serve-static-middleware (serve-static public-path))
+(.use app serve-static-middleware)
+
+(defn request-handler [_req res]
+  (println "request-handler")
+  (.end res "hello from server"))
+
+(.get app "*" request-handler)
+
+(def http-server (http/createServer app))
+
+(def socket-config {:cors {:origin "*"
+                           :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
+                           :credentials false}})
+
+(def io (new socket-io/Server http-server (clj->js socket-config)))
+
+(defn on-connection [^js socket]
+  (println "socket connected" socket)
+  (.on socket "disconnect" #(println "socket disconnected" socket)))
+
+(.on io "connection" on-connection)
+
+(defonce server-ref (volatile! nil))
 
 (def port-env (-> js/process.env .-PORT))
 (def port (if port-env (js/parseInt port-env) 3000))
 
-(defn on-disconnect [^js socket]
-  (println "socket disconnected" socket))
-
-(defn on-connection [^js socket]
-  (println "socket connected" socket)
-  (.on socket "disconnect" (fn [] (on-disconnect socket))))
+(defn on-listen [err]
+  (if err
+    (println "server start failed" err)
+    (println "http server running on port" port)))
 
 (defn main []
-  (println "starting server")
-  (let [server (http/createServer serve-static-files)
-        io (new socket-io/Server server 
-                {:cors {:origin true}})]
-    (.listen server port on-listen)
-    (.on io "connection" on-connection)
-    (vreset! server-ref server)))
+  (println "[main] server starting")
+  (.listen http-server port on-listen)
+  #_(vreset! server-ref http-server))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn start []
-  (println "start called")
   (main))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn stop [done]
-  (println "stop called")
-  (when-some [srv @server-ref]
-    (.close srv
-      (fn [err]
-        (println "stop completed" err)
-        (done)))))
-
-(println "__filename" js/__filename)
+  (println "server stopping")
+  (let [on-close (fn [err]
+                   (println "server closed" err)
+                   (done))]
+  (when-some [server @server-ref]
+    (.close server on-close))))
