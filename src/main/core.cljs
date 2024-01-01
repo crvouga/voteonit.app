@@ -19,6 +19,7 @@
 ;; 
 ;; 
 
+
 (defmethod handle-msg :default  [input]
   (println "Unhandled msg" input)
   input)
@@ -106,14 +107,14 @@
 
 
 (defn publish-event [input event]
-  (append-effect input {:type ::publish :msg event}))
+  (append-effect input {:type ::publish-event :msg event}))
 
 (def event-handlers (atom #{}))
 
 (defn register-event-handler! [handle-event]
   (swap! event-handlers conj handle-event))
 
-(defmethod handle-effect! ::publish [input]
+(defmethod handle-effect! ::publish-event [input]
   (loop [running-output {:state (:state input)}
          event-handlers @event-handlers]
     (if (empty? event-handlers)
@@ -124,5 +125,5 @@
               output-next {:state (-> output-from-event :state)
                            :effects (concat (->effects running-output) (->effects output-from-event))
                            :commands (concat (->commands running-output) (->commands output-from-event))}] 
-          
+          (println "output-next" output-next)
           (recur output-next (rest event-handlers))))))

@@ -5,7 +5,9 @@
             [ui.spinner]
             [auth.client]
             [client.toast]
+            [client.routing]
             [wire.client]
+            [vote.client]
             [core]))
 
 ;; 
@@ -19,7 +21,8 @@
 (defn initial-state [] 
   (merge
    (auth.client/initial-state)
-   (client.toast/initial-state)))
+   (client.toast/initial-state)
+   (client.routing/initial-state)))
 
 ;; 
 ;; 
@@ -36,11 +39,10 @@
   [auth.client/view-login-screen input])
 
 (defmethod view-main :logged-in [input]
-  [auth.client/view-account-screen input])
+  [client.routing/view-route input])
 
 (defmethod view-main :default []
-  [:div.w-full.h-full.flex.flex-col.items-center.justify-center 
-   [ui.spinner.view]])
+  [ui.spinner/screen])
 
 (defn view [{:keys [] :as input}] 
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
@@ -72,4 +74,5 @@
 (defn main []
   (wire.client/subscriptions! state dispatch!)
   (client.toast/subscriptions! state dispatch!)
+  (client.routing/subscriptions! state dispatch!)
   (rd/render [root-view] (js/document.getElementById "root")))
