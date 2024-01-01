@@ -4,8 +4,10 @@
             [wire.core]
             [cljs.core.async :refer [chan put! <! go]]))
 
+(def client-connected ::client-connected)
+
 (defmethod handle-msg ::client-connected [input]
-  (let [event (merge (:msg input) {:type :client-connected})]
+  (let [event (merge (:msg input) {:type client-connected})]
     (publish-event input event)))
 
 (defn send-to-client [input client-id & msgs]

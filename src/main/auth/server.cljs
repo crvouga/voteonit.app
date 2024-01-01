@@ -101,7 +101,7 @@
 
 (defmulti handle-event (fn [input] (-> input :msg :type)))
 
-(defmethod handle-event :client-connected [input] 
+(defmethod handle-event wire.server/client-connected [input] 
   (-> input 
       send-client-auth-state))
 
