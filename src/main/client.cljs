@@ -1,6 +1,7 @@
 (ns client
   (:require [reagent.dom :as rd] 
             [reagent.core :as r]
+            [clojure.pprint :refer [pprint]]
             [ui.button]
             [ui.spinner]
             [auth.client]
@@ -22,6 +23,7 @@
   (merge
    (auth.client/initial-state)
    (client.toast/initial-state)
+   (vote.client/initial-state)
    (client.routing/initial-state)))
 
 ;; 
@@ -48,6 +50,7 @@
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
     {:style {:height "100dvh"}}
     [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative 
+     [:pre (pprint (:state input))]
      [client.toast/view input]
      [view-main input]]])
 

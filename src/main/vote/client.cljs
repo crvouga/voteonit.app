@@ -6,7 +6,9 @@
 
 
 (defn initial-state []
-  {::polls-by-id {}})
+  {::polls-by-id {}
+   ::name nil
+   ::questions []})
 
 (defmethod core/handle-msg ::clicked-open-account-button [input]
   (-> input auth.client/open-account-screen))
