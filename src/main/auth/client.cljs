@@ -2,6 +2,7 @@
   (:require [ui.textfield]
             [ui.button]
             [auth.core]
+            [client.routing]
             [wire.client]
             [client.toast]
             [core :refer [handle-msg]]))
