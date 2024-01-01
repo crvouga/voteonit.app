@@ -45,7 +45,7 @@
   (set-session-id! session-id)
   (send-session-id! socket))
 
-(defn subscriptions! [dispatch!]
+(defn subscriptions! [_state! dispatch!]
   (let [socket-config {:query {:session-id (get-session-id!)}}
         socket (socket-io/io server-url (clj->js socket-config))] 
     

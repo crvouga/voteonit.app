@@ -1,15 +1,21 @@
 (ns client.toast
-  (:require [core :refer [handle-msg handle-command append-command]]))
-
+  (:require [core :refer [handle-command append-command handle-msg]]
+            [cljs.core.async :refer [go-loop timeout <!]]))
 
 (defn initial-state []
   {::toast nil})
 
-(defmethod handle-msg ::toast-time-ellaspsed [input]
-  input)
-
 (defn new-toast [message]
-  {:message message})
+  {:message message
+   :duration 3000
+   :created-at (js/Date.now())})
+
+(defn toast-expired? [toast]
+  (let [duration (-> toast :duration)
+        created-at (-> toast :created-at)
+        now (js/Date.now())
+        elapsed (- now created-at)]
+    (>= elapsed duration)))
 
 (defmethod handle-command ::show-toast [input] 
   (let [message (-> input :command :message)
@@ -20,9 +26,23 @@
 (defn show-toast [input message]
   (append-command input {:type ::show-toast :message message}))
 
+(defmethod handle-msg ::time-passed [input]
+  (let [toast (-> input :state ::toast)
+        removed (assoc-in input [:state ::toast] nil)
+        output (if (toast-expired? toast) removed input)]
+    output))
+
+
 (defn view [{:keys [state]}]
   (let [message (-> state ::toast :message)]
      (when message
-       [:div.absolute.inset-0.flex.items-start.justify-center.pointer-events-none
-        [:div.w-full.p-4.text-white.bg-neutral-800.rounded.text-lg.font-bold
+       [:div.absolute.inset-0.flex.items-start.justify-center.pointer-events-none.p-4
+        [:div.w-full.px-4.p-2.text-white.bg-neutral-700.rounded.text-base.font-semibold
          message]])))
+
+(defn subscriptions! [state! dispatch!]
+  (go-loop []
+    (when (not (nil? (-> @state! ::toast)))
+      (dispatch! {:type ::time-passed}))
+    (<! (timeout 1000))
+    (recur)))

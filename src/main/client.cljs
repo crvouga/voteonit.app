@@ -70,5 +70,6 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (wire.client/subscriptions! dispatch!)
+  (wire.client/subscriptions! state dispatch!)
+  (client.toast/subscriptions! state dispatch!)
   (rd/render [root-view] (js/document.getElementById "root")))
