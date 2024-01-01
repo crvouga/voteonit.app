@@ -6,6 +6,21 @@
             [client.toast]
             [core :refer [handle-msg]]))
 
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defn initial-state []
+  {::email ""
+   ::current-user-account nil
+   ::loading-user-account? true
+   ::logging-out? false})
+
 ;; 
 ;; 
 ;; 
@@ -16,16 +31,11 @@
 
 (defn to-auth-state [{:keys [state]}]
   (cond
-    (-> state ::loading?) :loading
+    (-> state ::loading-user-account?) :loading
     (-> state ::current-user-account nil? not) :logged-in
     :else :logged-out))
 
 
-(defn initial-state []
-  {::email ""
-   ::current-user-account nil
-   ::loading? true
-   ::logging-out? false})
 
 (defmethod handle-msg ::user-inputted-email [input]
   (assoc-in input  [:state ::email] (-> input :msg :email)))
@@ -41,12 +51,15 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
+(defn to-toast-message [input]
+  (let [auth-state (to-auth-state input)]
+    (cond
+      (= auth-state :logged-in) "Logged in"
+      (= auth-state :logged-out) "Logged out"
+      :else nil)))
+
 (defn show-auth-state-toast [input]
-  (let [auth-state (to-auth-state input)
-        message (cond
-                  (= auth-state :logged-in) "Logged in"
-                  (= auth-state :logged-out) "Logged out"
-                  :else nil)]
+  (let [message (to-toast-message input)]
     (if message
       (client.toast/show-toast input message)
       input)))
@@ -54,7 +67,7 @@
 (defmethod handle-msg auth.core/current-user-account [input]
   (-> input
       (assoc-in [:state ::current-user-account] (-> input :msg :account))
-      (assoc-in [:state ::loading?] false)
+      (assoc-in [:state ::loading-user-account?] false)
       (assoc-in [:state ::logging-out?] false)
       show-auth-state-toast))
 
