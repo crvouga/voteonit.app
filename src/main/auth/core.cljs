@@ -6,4 +6,8 @@
 
 (def user-clicked-logout-button ::user-clicked-logout-button)
 
+(def user-logged-out ::user-logged-out)
+
+(def user-logged-in ::user-logged-in)
+
 (def current-user-account ::client-auth-account)

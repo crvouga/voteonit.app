@@ -73,24 +73,29 @@
   (let [guest-account (generate-guest-account)]
     (assoc-session input guest-account)))
 
-(defn send-client-auth-state [input]
+
+(defn to-user-account [input]
   (let [session-id (-> input :msg :session-id)
-        client-id (-> input :msg :client-id)
         user-id (-> input :state ::user-id-by-session-id (get session-id))
-        account (-> input :state ::accounts-by-user-id (get user-id))
-        to-client {:type auth.core/current-user-account :account account}
-        output (wire.server/send-to-client input client-id to-client)]
-    output))
+        account (-> input :state ::accounts-by-user-id (get user-id))]
+    account))
+
+(defn send-logged-in [input]
+  (let [account (to-user-account input)
+        client-id (-> input :msg :client-id)
+        to-client {:type auth.core/user-logged-in :account account}]
+    (wire.server/send-to-client input client-id to-client)))
 
 (defmethod handle-msg auth.core/user-clicked-continue-as-guest [input]
-   (-> input 
-       assoc-new-guest-session 
-       send-client-auth-state))
+  (-> input 
+      assoc-new-guest-session 
+      send-logged-in))
 
-(defmethod handle-msg auth.core/user-clicked-logout-button [input]
-  (-> input
-      dissoc-session
-      send-client-auth-state))
+(defmethod handle-msg auth.core/user-clicked-logout-button [input] 
+  (let [client-id (-> input :msg :client-id)]
+    (-> input
+        dissoc-session
+        (wire.server/send-to-client client-id {:type auth.core/user-logged-out}))))
 
 ;; 
 ;; 
@@ -100,6 +105,12 @@
 ;; 
 
 (defmulti handle-event (fn [input] (-> input :msg :type)))
+
+(defn send-client-auth-state [input]
+  (let [client-id (-> input :msg :client-id)
+        account (to-user-account input)
+        to-client {:type auth.core/current-user-account :account account}] 
+    (wire.server/send-to-client input client-id to-client)))
 
 (defmethod handle-event wire.server/client-connected [input] 
   (-> input 

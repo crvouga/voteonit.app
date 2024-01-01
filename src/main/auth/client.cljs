@@ -76,13 +76,24 @@
   (-> input
       (assoc-in [:state ::current-user-account] (-> input :msg :account))
       (assoc-in [:state ::loading-user-account?] false)
-      (assoc-in [:state ::logging-out?] false)
-      show-auth-state-toast))
+      (assoc-in [:state ::logging-out?] false)))
 
 (defmethod handle-msg ::user-clicked-logout-button [input]
   (-> input
       (wire.client/send-to-server {:type auth.core/user-clicked-logout-button})
       (assoc-in [:state ::logging-out?] true)))
+
+(defmethod handle-msg auth.core/user-logged-out [input]
+  (-> input
+      (assoc-in [:state ::current-user-account] nil)
+      (assoc-in [:state ::logging-out?] false)
+      show-auth-state-toast))
+
+(defmethod handle-msg auth.core/user-logged-in [input]
+  (-> input
+      (assoc-in [:state ::current-user-account] (-> input :msg :account))
+      (assoc-in [:state ::logging-out?] false)
+      show-auth-state-toast))
 
 ;; 
 ;; 
