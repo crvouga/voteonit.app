@@ -3,6 +3,7 @@
             [ui.button]
             [auth.core]
             [wire.client]
+            [client.toast]
             [core :refer [handle-msg]]))
 
 ;; 
@@ -11,6 +12,14 @@
 ;; 
 ;; 
 ;; 
+
+
+(defn to-auth-state [{:keys [state]}]
+  (cond
+    (-> state ::loading?) :loading
+    (-> state ::current-user-account nil? not) :logged-in
+    :else :logged-out))
+
 
 (defn initial-state []
   {::email ""
@@ -32,17 +41,22 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
+(defn show-auth-state-toast [input]
+  (let [auth-state (to-auth-state input)
+        message (cond
+                  (= auth-state :logged-in) "Logged in"
+                  (= auth-state :logged-out) "Logged out"
+                  :else nil)]
+    (if message
+      (client.toast/show-toast input message)
+      input)))
+
 (defmethod handle-msg auth.core/current-user-account [input]
   (-> input
       (assoc-in [:state ::current-user-account] (-> input :msg :account))
       (assoc-in [:state ::loading?] false)
-      (assoc-in [:state ::logging-out?] false)))
-
-(defn to-auth-state [{:keys [state]}]
-  (cond
-    (-> state ::loading?) :loading
-    (-> state ::current-user-account nil? not) :logged-in
-    :else :logged-out))
+      (assoc-in [:state ::logging-out?] false)
+      show-auth-state-toast))
 
 (defmethod handle-msg ::user-clicked-logout-button [input]
   (-> input

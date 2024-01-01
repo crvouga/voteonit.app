@@ -4,6 +4,7 @@
             [ui.button]
             [ui.spinner]
             [auth.client]
+            [client.toast]
             [wire.client]
             [core]))
 
@@ -17,7 +18,8 @@
 
 (defn initial-state [] 
   (merge
-   (auth.client/initial-state)))
+   (auth.client/initial-state)
+   (client.toast/initial-state)))
 
 ;; 
 ;; 
@@ -43,7 +45,8 @@
 (defn view [{:keys [] :as input}] 
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
     {:style {:height "100dvh"}}
-    [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full
+    [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative 
+     [client.toast/view input]
      [view-main input]]])
 
 
