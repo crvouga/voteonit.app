@@ -38,9 +38,8 @@
 ;; 
 ;; 
 
-(defmethod handle-msg auth.core/user-clicked-send-login-link-email [input]
-  (let [email (-> input :msg :email)
-        login-link-email (make-login-login-email email)
+(defmethod handle-msg auth.core/user-clicked-send-login-link-email [input] 
+  (let [login-link-email (make-login-login-email  (-> input :msg :email))
         sent-email (server.email/send-email input login-link-email)]
     sent-email))
 
