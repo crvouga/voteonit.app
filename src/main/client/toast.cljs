@@ -1,5 +1,5 @@
 (ns client.toast
-  (:require [core :refer [handle-command append-command handle-msg]]
+  (:require [core]
             [cljs.core.async :refer [go-loop timeout <!]]))
 
 ;; 
@@ -37,14 +37,14 @@
 ;; 
 ;; 
 
-(defmethod handle-command ::show-toast [input] 
+(defmethod core/handle-command ::show-toast [input] 
   (let [message (-> input :command :message)
         toast (new-toast message)]
     (-> input 
         (assoc ::toast toast))))
 
 (defn show-toast [input message]
-  (append-command input {:type ::show-toast :message message}))
+  (core/append-command input {:type ::show-toast :message message}))
 
 ;; 
 ;; 
@@ -52,7 +52,7 @@
 ;; 
 ;; 
 
-(defmethod handle-msg ::time-passed [input]
+(defmethod core/handle-msg ::time-passed [input]
   (let [toast (-> input ::toast)
         removed (assoc input ::toast nil)
         output (if (toast-expired? toast) removed input)]
@@ -74,6 +74,7 @@
      [:div.w-full.px-4.p-2.text-white.bg-neutral-700.rounded.text-base.transition-all
       {:class (if (nil? message) "opacity-0" "opacity-100")}
       message]]))
+
 
 ;; 
 ;; 

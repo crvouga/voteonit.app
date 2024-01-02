@@ -1,27 +1,35 @@
 (ns wire.server
-  (:require [core :refer [handle-effect! publish-event append-effect handle-msg]]
+  (:require [core]
             ["socket.io" :as socket-io]
             [wire.core]
             [cljs.core.async :refer [chan put! <! go]]))
 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
 (def client-connected ::client-connected)
 
-(defmethod handle-msg ::client-connected [input]
+(defmethod core/handle-msg ::client-connected [input]
   (let [event (merge (:msg input) {:type client-connected})]
-    (publish-event input event)))
+    (core/publish-event input event)))
 
 (defn send-to-client [input client-id & msgs]
-  (append-effect input {:type ::send-to-client 
+  (core/append-effect input {:type ::send-to-client 
                         :client-id client-id 
                         :msgs msgs}))
 
 (def to-client-msgs-chan (chan))
 
-(defmethod handle-effect! ::send-to-client [input] 
+(defmethod core/handle-effect! ::send-to-client [input] 
   (put! to-client-msgs-chan (-> input :effect))
   input)
 
-(defmethod handle-effect! ::broadcast [input]
+(defmethod core/handle-effect! ::broadcast [input]
   input)
 
 

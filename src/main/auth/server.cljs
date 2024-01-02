@@ -87,7 +87,6 @@
     sent-email))
 
 
-
 (defmethod core/handle-msg auth.core/user-clicked-continue-as-guest [input]
   (-> input 
       assoc-new-guest-session 
@@ -98,7 +97,6 @@
     (-> input
         dissoc-session
         (wire.server/send-to-client client-id {:type auth.core/user-logged-out}))))
-
 
 ;; 
 ;; 

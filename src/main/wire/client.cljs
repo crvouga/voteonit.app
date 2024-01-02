@@ -1,16 +1,16 @@
 (ns wire.client
-  (:require [core :refer [handle-effect! append-effect]]
+  (:require [core]
             ["socket.io-client" :as socket-io]
             [wire.core]
             [cljs.core.async :refer [chan put! go <!]]))
 
 (defn send-to-server [input & msgs]
-  (append-effect input {:type ::send-to-server 
+  (core/append-effect input {:type ::send-to-server 
                         :msgs msgs}))
 
 (def to-server-msgs-chan (chan))
 
-(defmethod handle-effect! ::send-to-server [input]
+(defmethod core/handle-effect! ::send-to-server [input]
   (let [msgs (-> input :effect :msgs)]
     (put! to-server-msgs-chan msgs)
     input))
