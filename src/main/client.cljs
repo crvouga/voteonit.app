@@ -34,8 +34,7 @@
 (def state! (r/atom (core/initial-state)))
 
 (defn dispatch! [msg]
-  (let [stepped (core/step! (merge @state! {:msg msg}))]
-    (reset! state! stepped)))
+  (core/step! state! msg))
 
 (defn root-view [] 
   [view (merge @state! {:dispatch! dispatch!})])

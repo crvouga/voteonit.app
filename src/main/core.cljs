@@ -96,10 +96,11 @@
     (when msg (println (str "[msg] " (pr-str msg) "\n")))
     (when effect (println (str "[effect] " (pr-str effect) "\n")))))
 
-(defn step! 
-  [input]
-  (print-msg input)
-  (let [output-from-msg (handle-msg input)]
+(defn stepper! 
+  [state msg]
+  (let [input {:state state :msg msg}
+        output-from-msg (handle-msg input)]
+    (print-msg input)
     (loop [running-output output-from-msg]
      (let [effects (->effects running-output)
            commands (->commands running-output)]
@@ -123,9 +124,11 @@
            (recur output-next))
          
          :else
-         running-output))))
+         running-output)))))
 
-)
+(defn step! 
+  [state! msg] 
+  (reset! state! (stepper! @state! msg)))
   
 ;; 
 ;; 
