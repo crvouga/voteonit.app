@@ -1,5 +1,5 @@
 (ns auth.server 
-  (:require [core :refer [handle-msg register-event-handler!]]
+  (:require [core]
             [auth.core]
             [wire.server]
             [server.email]))
@@ -30,18 +30,6 @@
 (defn make-login-login-email [email]
   {:email email})
   
-
-;; 
-;; 
-;; 
-;; 
-;; 
-;; 
-
-(defmethod handle-msg auth.core/user-clicked-send-login-link-email [input] 
-  (let [login-link-email (make-login-login-email  (-> input :msg :email))
-        sent-email (server.email/send-email input login-link-email)]
-    sent-email))
 
 (defn generate-user-id! []
   (str "user-id:" (rand-int 1000000)))
@@ -86,16 +74,31 @@
         to-client {:type auth.core/user-logged-in :account account}]
     (wire.server/send-to-client input client-id to-client)))
 
-(defmethod handle-msg auth.core/user-clicked-continue-as-guest [input]
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmethod core/handle-msg auth.core/user-clicked-send-login-link-email [input] 
+  (let [login-link-email (make-login-login-email  (-> input :msg :email))
+        sent-email (server.email/send-email input login-link-email)]
+    sent-email))
+
+
+
+(defmethod core/handle-msg auth.core/user-clicked-continue-as-guest [input]
   (-> input 
       assoc-new-guest-session 
       send-logged-in))
 
-(defmethod handle-msg auth.core/user-clicked-logout-button [input] 
+(defmethod core/handle-msg auth.core/user-clicked-logout-button [input] 
   (let [client-id (-> input :msg :client-id)]
     (-> input
         dissoc-session
         (wire.server/send-to-client client-id {:type auth.core/user-logged-out}))))
+
 
 ;; 
 ;; 
@@ -113,11 +116,13 @@
     (wire.server/send-to-client input client-id to-client)))
 
 (defmethod handle-event wire.server/client-connected [input] 
-  (-> input 
-      send-client-auth-state))
+  (-> input send-client-auth-state))
 
 (defmethod handle-event :default [input]
   (println "Unhandled event" (-> input :msg :type))
   input)
   
-(register-event-handler! handle-event)
+(core/register-event-handler! handle-event)
+
+
+
