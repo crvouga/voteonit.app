@@ -56,18 +56,18 @@
         {:keys [client-id session-id]} msg
         {:keys [user-id]} user-account]
     (-> input
-        (update-in [:state ::session-id-by-client-id] assoc client-id session-id)
-        (update-in [:state ::session-ids] conj session-id)
-        (update-in [:state ::user-id-by-session-id] assoc session-id user-id)
-        (update-in [:state ::accounts-by-user-id] assoc user-id user-account))))
+        (assoc-in [::session-id-by-client-id client-id] session-id)
+        (update ::session-ids conj session-id)
+        (assoc-in [::user-id-by-session-id  session-id] user-id)
+        (assoc-in [::accounts-by-user-id user-id] user-account))))
 
 (defn dissoc-session [input]
   (let [{:keys [msg]} input
         {:keys [client-id session-id]} msg]
     (-> input
-        (update-in [:state ::session-id-by-client-id] dissoc client-id)
-        (update-in [:state ::session-ids] disj session-id)
-        (update-in [:state ::user-id-by-session-id] dissoc session-id))))
+        (update ::session-id-by-client-id dissoc client-id)
+        (update ::session-ids disj session-id)
+        (update ::user-id-by-session-id dissoc session-id))))
 
 (defn assoc-new-guest-session [input]
   (let [guest-account (generate-guest-account)]
@@ -76,8 +76,8 @@
 
 (defn to-user-account [input]
   (let [session-id (-> input :msg :session-id)
-        user-id (-> input :state ::user-id-by-session-id (get session-id))
-        account (-> input :state ::accounts-by-user-id (get user-id))]
+        user-id (-> input ::user-id-by-session-id (get session-id))
+        account (-> input ::accounts-by-user-id (get user-id))]
     account))
 
 (defn send-logged-in [input]

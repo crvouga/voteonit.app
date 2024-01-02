@@ -30,10 +30,10 @@
 ;; 
 
 
-(defn to-auth-state [{:keys [state]}]
+(defn to-auth-state [input]
   (cond
-    (-> state ::loading-user-account?) :loading
-    (-> state ::current-user-account nil? not) :logged-in
+    (-> input ::loading-user-account?) :loading
+    (-> input ::current-user-account nil? not) :logged-in
     :else :logged-out))
 
 
@@ -59,10 +59,10 @@
 ;; 
 
 (defmethod core/handle-msg ::user-inputted-email [input]
-  (assoc-in input  [:state ::email] (-> input :msg :email)))
+  (assoc input ::email (-> input :msg :email)))
 
 (defmethod core/handle-msg ::clicked-send-login-link [input]
-  (let [email (-> input :state ::email)
+  (let [email (-> input ::email)
         to-server {:type auth.core/user-clicked-send-login-link-email :email email}
         output (wire.client/send-to-server input to-server)] 
     output))
@@ -75,25 +75,25 @@
 
 (defmethod core/handle-msg auth.core/current-user-account [input]
   (-> input
-      (assoc-in [:state ::current-user-account] (-> input :msg :account))
-      (assoc-in [:state ::loading-user-account?] false)
-      (assoc-in [:state ::logging-out?] false)))
+      (assoc ::current-user-account (-> input :msg :account))
+      (assoc ::loading-user-account? false)
+      (assoc ::logging-out? false)))
 
 (defmethod core/handle-msg ::user-clicked-logout-button [input]
   (-> input
       (wire.client/send-to-server {:type auth.core/user-clicked-logout-button})
-      (assoc-in [:state ::logging-out?] true)))
+      (assoc ::logging-out? true)))
 
 (defmethod core/handle-msg auth.core/user-logged-out [input]
   (-> input
-      (assoc-in [:state ::current-user-account] nil)
-      (assoc-in [:state ::logging-out?] false)
+      (assoc ::current-user-account nil)
+      (assoc ::logging-out? false)
       show-auth-state-toast))
 
 (defmethod core/handle-msg auth.core/user-logged-in [input]
   (-> input
-      (assoc-in [:state ::current-user-account] (-> input :msg :account))
-      (assoc-in [:state ::logging-out?] false)
+      (assoc ::current-user-account (-> input :msg :account))
+      (assoc ::logging-out? false)
       show-auth-state-toast))
 
 (defmethod core/handle-msg ::clicked-back-button [input]
@@ -115,22 +115,22 @@
 ;; 
 ;; 
 
-(defmethod client.routing/view-route :acount-route [{:keys [state dispatch!]}] 
+(defmethod client.routing/view-route :acount-route [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:p.text-xl.font-bold "Account"]
    [ui.button/view {:text "Back" :on-click #(dispatch! {:type ::clicked-back-button})}]
    [ui.button/view 
     {:text "Logout"
-     :loading? (::logging-out? state)
+     :loading? (::logging-out? input)
      :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])
 
-(defn view-login-screen [{:keys [state dispatch!]}] 
+(defn view-login-screen [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
    [ui.textfield/view 
     {:label "Email"
-     :value (::email state) 
+     :value (::email input) 
      :type :email
      :on-value #(dispatch! {:type ::user-inputted-email :email %})}]
    

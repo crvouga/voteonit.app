@@ -17,13 +17,13 @@
   {::stack [default-route]})
 
 (defn to-current-route [input]
-  (-> input :state ::stack last))
+  (-> input ::stack last))
 
 (defn push-stack [input route]
-  (update-in input [:state ::stack] conj route))
+  (update input ::stack conj route))
 
 (defn pop-stack [input]
-  (update-in input [:state ::stack] pop))
+  (update input ::stack pop))
 
 (defn replace-stack [input route]
   (-> input 

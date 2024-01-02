@@ -75,11 +75,11 @@
 ;; 
 ;; 
 
-(def state (atom (initial-state)))
+(def state! (atom (initial-state)))
 
 (defn dispatch! [msg]
-  (let [stepped (core/step! {:state @state :msg msg})]
-    (reset! state (-> stepped :state))))
+  (let [stepped (core/step! (merge @state! {:msg msg}))]
+    (reset! state! stepped)))
   
 (defn main []
   (println "[main] server starting")

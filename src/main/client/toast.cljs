@@ -41,7 +41,7 @@
   (let [message (-> input :command :message)
         toast (new-toast message)]
     (-> input 
-        (assoc-in [:state ::toast] toast))))
+        (assoc ::toast toast))))
 
 (defn show-toast [input message]
   (append-command input {:type ::show-toast :message message}))
@@ -53,8 +53,8 @@
 ;; 
 
 (defmethod handle-msg ::time-passed [input]
-  (let [toast (-> input :state ::toast)
-        removed (assoc-in input [:state ::toast] nil)
+  (let [toast (-> input ::toast)
+        removed (assoc input ::toast nil)
         output (if (toast-expired? toast) removed input)]
     output))
 
@@ -68,8 +68,8 @@
 
 
 
-(defn view [{:keys [state]}]
-  (let [message (-> state ::toast :message)]
+(defn view [input]
+  (let [message (-> input ::toast :message)]
     [:div.absolute.inset-0.flex.items-start.justify-center.pointer-events-none.p-4
      [:div.w-full.px-4.p-2.text-white.bg-neutral-700.rounded.text-base.transition-all
       {:class (if (nil? message) "opacity-0" "opacity-100")}

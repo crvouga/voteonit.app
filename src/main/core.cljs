@@ -55,9 +55,6 @@
 (defn ->commands [output]
   (or (-> output :commands seq) []))
 
-(defn ->state [output] 
-  (-> output :state))
-
 (defn print-msg [input]
   (let [command (-> input :command)
         msg (-> input :msg)
@@ -66,29 +63,29 @@
     (when msg (println (str "[msg] " (pr-str msg) "\n")))
     (when effect (println (str "[effect] " (pr-str effect) "\n")))))
 
-(defn step! [input]
+(defn step! 
+  [input]
   (print-msg input)
   (let [output-from-msg (handle-msg input)]
     (loop [running-output output-from-msg]
      (let [effects (->effects running-output)
-           commands (->commands running-output)
-           state (or (->state running-output) (->state output-from-msg))]
+           commands (->commands running-output)]
        (cond 
          (first commands) 
-         (let [input {:state state :command (first commands)}
+         (let [input (-> running-output (dissoc :commands :effects) (assoc :command (first commands)))
                output-from-command (handle-command input)
-               output-next {:state (or (->state output-from-command) state)
-                            :effects (concat effects (->effects output-from-command))
-                            :commands (concat (rest commands) (->commands output-from-command))}]
+               output-next (merge output-from-command
+                                  {:effects (concat effects (->effects output-from-command))
+                                   :commands (concat (rest commands) (->commands output-from-command))})]
            (print-msg input)
            (recur output-next))
          
          (first effects)
-         (let [input {:state state :effect (first effects)}
+         (let [input (-> running-output (dissoc :commands :effects) (assoc :effect (first effects)))
                output-from-effect (handle-effect! input)
-               output-next {:state (or (->state output-from-effect) state)
-                            :effects (concat (rest effects) (->effects output-from-effect))
-                            :commands (concat commands (->commands output-from-effect))}]
+               output-next (merge output-from-effect
+                                  {:effects (concat (rest effects) (->effects output-from-effect))
+                                   :commands (concat commands (->commands output-from-effect))})]
            (print-msg input)
            (recur output-next))
          
@@ -114,16 +111,16 @@
 (defn register-event-handler! [handle-event]
   (swap! event-handlers conj handle-event))
 
-(defmethod handle-effect! ::publish-event [input]
-  (loop [running-output {:state (:state input)}
+(defmethod handle-effect! ::publish-event [input] 
+  (loop [running-output (dissoc input :effect)
          event-handlers @event-handlers]
     (if (empty? event-handlers)
         running-output
         (let [handle-event (first event-handlers)
               msg  (-> input :effect :msg)
               output-from-event (handle-event (assoc input :msg msg))
-              output-next {:state (-> output-from-event :state)
-                           :effects (concat (->effects running-output) (->effects output-from-event))
-                           :commands (concat (->commands running-output) (->commands output-from-event))}] 
+              output-next (merge output-from-event
+                                 {:effects (concat (->effects running-output) (->effects output-from-event))
+                                  :commands (concat (->commands running-output) (->commands output-from-event))})] 
           (println "output-next" output-next)
           (recur output-next (rest event-handlers))))))
