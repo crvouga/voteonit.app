@@ -1,5 +1,6 @@
-(ns vote.server)
+(ns vote.server
+  (:require [core]))
 
 
-(defn initial-state []
-  {:polls-by-id {}})
+(defmethod core/initial-state []
+  {::polls-by-id {}})

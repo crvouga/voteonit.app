@@ -4,6 +4,16 @@
             [wire.server]
             [server.email]))
 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(core/register-module! ::auth)
+
 
 ;; 
 ;; 
@@ -13,7 +23,7 @@
 ;; 
 
 
-(defn initial-state []
+(defmethod core/initial-state ::auth []
   {::session-id-by-client-id {}
    ::user-id-by-session-id {}
    ::session-ids #{}
@@ -105,22 +115,11 @@
 ;; 
 ;; 
 
-(defmulti handle-event (fn [input] (-> input :msg :type)))
-
 (defn send-client-auth-state [input]
   (let [client-id (-> input :msg :client-id)
         account (to-user-account input)
         to-client {:type auth.core/current-user-account :account account}] 
     (wire.server/send-to-client input client-id to-client)))
 
-(defmethod handle-event wire.server/client-connected [input] 
+(defmethod core/handle-event [::auth wire.server/client-connected] [input]
   (-> input send-client-auth-state))
-
-(defmethod handle-event :default [input]
-  (println "Unhandled event" (-> input :msg :type))
-  input)
-  
-(core/register-event-handler! handle-event)
-
-
-

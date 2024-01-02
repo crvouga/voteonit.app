@@ -5,23 +5,8 @@
             [core]
             ["express" :as express]
             [wire.server]
+            [vote.server]
             [auth.server]))
-
-
-;; 
-;; 
-;; 
-;; State
-;; 
-;; 
-;; 
-
-
-(defn initial-state []
-  (merge
-   (auth.server/initial-state)))
-
-
 
 ;; 
 ;; 
@@ -75,7 +60,7 @@
 ;; 
 ;; 
 
-(def state! (atom (initial-state)))
+(def state! (atom (core/initial-state)))
 
 (defn dispatch! [msg]
   (let [stepped (core/step! (merge @state! {:msg msg}))]
@@ -84,7 +69,7 @@
 (defn main []
   (println "[main] server starting")
   (.listen http-server port on-listen)
-  (wire.server/subscriptions! http-server dispatch!)
+  (core/subscriptions! {:http-server http-server :dispatch dispatch!})
   (vreset! server-ref http-server))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}

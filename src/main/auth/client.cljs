@@ -108,6 +108,7 @@
   (-> input
       (assoc ::current-user-account nil)
       (assoc ::logging-out? false)
+      (client.routing/push-route :login-route)
       show-auth-state-toast))
 
 (defmethod core/handle-msg auth.core/user-logged-in [input]
@@ -144,7 +145,7 @@
      :loading? (::logging-out? input)
      :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])
 
-(defn view-login-screen [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view-route :login-route [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    

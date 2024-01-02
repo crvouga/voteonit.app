@@ -13,10 +13,16 @@
 
 (core/register-module! ::routing)
 
-(def default-route {:type :polls})
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
 
 (defmethod core/initial-state ::routing []
-  {::stack [default-route]})
+  {::stack []})
 
 (defn to-current-route [input]
   (-> input ::stack last))
@@ -136,8 +142,8 @@
 
 (defmulti view-route (fn [input] (-> input to-current-route :type)))
 
-(defmethod view-route :default [_]
-  [:div "Page not found"])
+(defmethod view-route :default [input]
+  [:div (str "Page not found" (::stack input))])
 
 ;; 
 ;; 
@@ -149,23 +155,26 @@
 (defn- get-route! []
   (let [query-string (-> js/location .-search (string/replace-first #"^\?" ""))
         route (decode-url-string-to-map query-string)
-        route-final (if (empty? route) default-route route)]
+        route-final (if (empty? route) nil route)]
     route-final))
 
 (def route-chan (chan))
 
 (defn put-route! []
-  (put! route-chan (get-route!)))
-
+  (let [route (get-route!)]
+    (println route)
+    (when route 
+      (put! route-chan (get-route!)))))
+    
 (defn dispatch-route-changes! [dispatch!]
   (go
     (while true
       (let [route (<! route-chan)
             msg (current-route-change route)]
-        (dispatch! msg)))))
+        (when route
+          (dispatch! msg))))))
 
 (defmethod core/subscriptions! ::routing [{:keys [dispatch!]}]
   (.addEventListener js/window "hashchange" put-route!)
   (dispatch-route-changes! dispatch!)
-  (let [current-route (get-route!)]
-    (put! route-chan current-route)))
+  (put-route!))

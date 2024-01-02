@@ -139,21 +139,15 @@
 (defn publish-event [input event]
   (append-effect input {:type ::publish-event :msg event}))
 
-(def event-handlers (atom #{}))
-
-(defn register-event-handler! [handle-event]
-  (swap! event-handlers conj handle-event))
-
 (defmethod handle-effect! ::publish-event [input] 
   (loop [running-output (dissoc input :effect)
-         event-handlers @event-handlers]
-    (if (empty? event-handlers)
+         modules @modules]
+    (if (empty? modules)
         running-output
-        (let [handle-event (first event-handlers)
-              msg  (-> input :effect :msg)
-              output-from-event (handle-event (assoc input :msg msg))
+        (let [msg  (-> input :effect :msg)
+              output-from-event (handle-event (assoc input :msg msg :module (first modules)))
               output-next (merge output-from-event
                                  {:effects (concat (->effects running-output) (->effects output-from-event))
                                   :commands (concat (->commands running-output) (->commands output-from-event))})] 
           (println "output-next" output-next)
-          (recur output-next (rest event-handlers))))))
+          (recur output-next (rest modules))))))

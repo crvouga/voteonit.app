@@ -12,6 +12,19 @@
 ;; 
 ;; 
 
+(core/register-module! ::wire)
+
+(defmethod core/initial-state ::wire []
+  {::sockets-by-client-id {}})
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
 (def client-connected ::client-connected)
 
 (defmethod core/handle-msg ::client-connected [input]
@@ -111,6 +124,6 @@
                            :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
                            :credentials false}})
 
-(defn subscriptions! [^js http-server dispatch!] 
+(defmethod core/subscriptions! ::wire [{:keys [^js http-server dispatch!]}] 
   (let [io (new socket-io/Server http-server (clj->js socket-config))]
     (.on io "connection" #(on-connect dispatch! %))))
