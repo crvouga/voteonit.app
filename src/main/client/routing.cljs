@@ -11,9 +11,11 @@
 ;; 
 ;; 
 
+(core/register-module! ::routing)
+
 (def default-route {:type :polls})
 
-(defn initial-state []
+(defmethod core/initial-state ::routing []
   {::stack [default-route]})
 
 (defn to-current-route [input]
@@ -162,7 +164,7 @@
             msg (current-route-change route)]
         (dispatch! msg)))))
 
-(defn subscriptions! [_state! dispatch!]
+(defmethod core/subscriptions! ::routing [{:keys [dispatch!]}]
   (.addEventListener js/window "hashchange" put-route!)
   (dispatch-route-changes! dispatch!)
   (let [current-route (get-route!)]

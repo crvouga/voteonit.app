@@ -5,12 +5,21 @@
 ;; 
 ;; 
 ;; 
+;; 
+;; 
+;; 
+
+(core/register-module! ::toast)
+
+;; 
+;; 
+;; 
 ;; State
 ;; 
 ;; 
 ;; 
 
-(defn initial-state []
+(defmethod core/initial-state ::toast []
   {::toast nil})
 
 ;; 
@@ -82,7 +91,7 @@
 ;; 
 ;; 
 
-(defn subscriptions! [state! dispatch!]
+(defmethod core/subscriptions! ::toast [{:keys [state! dispatch!]}]
   (go-loop []
     (when (not (nil? (-> @state! ::toast)))
       (dispatch! {:type ::time-passed}))

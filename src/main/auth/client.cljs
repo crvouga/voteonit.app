@@ -13,14 +13,34 @@
 ;; 
 ;; 
 ;; 
+
+
+(core/register-module! ::auth)
+
+;; 
+;; 
+;; 
+;; 
+;; 
 ;; 
 ;; 
 
-(defn initial-state []
+(defmethod core/initial-state ::auth []
   {::email ""
    ::current-user-account nil
    ::loading-user-account? true
    ::logging-out? false})
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmethod core/handle-event [::auth :something-happend] [input]
+  (println "Something happend" input)
+  input)
 
 ;; 
 ;; 

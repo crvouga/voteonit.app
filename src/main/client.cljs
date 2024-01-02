@@ -14,27 +14,11 @@
 ;; 
 ;; 
 ;; 
-;; State
 ;; 
-;; 
-;; 
-
-(defn initial-state [] 
-  (merge
-   (auth.client/initial-state)
-   (client.toast/initial-state)
-   (vote.client/initial-state)
-   (client.routing/initial-state)))
-
-;; 
-;; 
-;; 
-;; View
 ;; 
 ;; 
 ;; 
 
-  
 (defmulti view-main auth.client/to-auth-state)
 
 (defmethod view-main :logged-out [input]
@@ -54,16 +38,15 @@
      [client.toast/view input]
      [view-main input]]])
 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
 
-
-;; 
-;; 
-;; 
-;; 
-;; 
-;; 
-
-(def state! (r/atom (initial-state)))
+(def state! (r/atom (core/initial-state)))
 
 (defn dispatch! [msg]
   (let [stepped (core/step! (merge @state! {:msg msg}))]
@@ -74,7 +57,5 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (wire.client/subscriptions! state! dispatch!)
-  (client.toast/subscriptions! state! dispatch!)
-  (client.routing/subscriptions! state! dispatch!)
+  (core/subscriptions! {:state! state! :dispatch! dispatch!})
   (rd/render [root-view] (js/document.getElementById "root")))

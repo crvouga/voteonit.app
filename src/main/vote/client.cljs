@@ -4,8 +4,9 @@
             [auth.client]
             [core]))
 
+(core/register-module! ::vote)
 
-(defn initial-state []
+(defmethod core/initial-state ::vote []
   {::polls-by-id {}
    ::name nil
    ::questions []})

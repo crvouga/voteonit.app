@@ -7,18 +7,50 @@
 ;; 
 ;; 
 
+(def modules (atom #{}))
+
+(defn register-module! [module]
+  (swap! modules conj module))
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmulti initial-state (fn [input] (-> input :module)))
+
 (defmulti handle-msg (fn [input] (-> input :msg :type)))
 
 (defmulti handle-command (fn [input] (-> input :command :type)))
 
+(defmulti handle-event (fn [input] [(-> input :module) (-> input :msg :type)]))
+
 (defmulti handle-effect! (fn [input] (-> input :effect :type)))
 
+(defmulti subscriptions! (fn [input] (-> input :module)))
+
+;; 
 ;; 
 ;; 
 ;; 
 ;; 
 ;; 
 
+(defmethod initial-state :default []
+  (println "@modules" @modules)
+  (reduce 
+   (fn [acc module] (merge acc (initial-state (assoc acc :module module))))
+   {}
+   @modules))
+
+(defmethod subscriptions! nil [input] 
+  (doseq [module @modules]
+    (subscriptions! (assoc input :module module))))
+
+(defmethod subscriptions! :default [input] 
+  (println "Unhandled sub" input))
 
 (defmethod handle-msg :default  [input]
   (println "Unhandled msg" input)
@@ -31,6 +63,7 @@
 (defmethod handle-effect! :default [input]
   (println "Unhandled eff!" input)
   input)
+
 
 ;; 
 ;; 
