@@ -23,7 +23,7 @@
 ;; 
 
 
-(defmethod core/initial-state ::auth []
+(defmethod core/on-init ::auth []
   {::session-id-by-client-id {}
    ::user-id-by-session-id {}
    ::session-ids #{}
@@ -91,18 +91,18 @@
 ;; 
 ;; 
 
-(defmethod core/handle-msg auth.core/user-clicked-send-login-link-email [input] 
+(defmethod core/on-msg auth.core/user-clicked-send-login-link-email [input] 
   (let [login-link-email (make-login-login-email  (-> input :msg :email))
         sent-email (server.email/send-email input login-link-email)]
     sent-email))
 
 
-(defmethod core/handle-msg auth.core/user-clicked-continue-as-guest [input]
+(defmethod core/on-msg auth.core/user-clicked-continue-as-guest [input]
   (-> input 
       assoc-new-guest-session 
       send-logged-in))
 
-(defmethod core/handle-msg auth.core/user-clicked-logout-button [input] 
+(defmethod core/on-msg auth.core/user-clicked-logout-button [input] 
   (let [client-id (-> input :msg :client-id)]
     (-> input
         dissoc-session
@@ -121,5 +121,5 @@
         to-client {:type auth.core/current-user-account :account account}] 
     (wire.server/send-to-client input client-id to-client)))
 
-(defmethod core/handle-event [::auth wire.server/client-connected] [input]
+(defmethod core/on-evt [::auth wire.server/client-connected] [input]
   (-> input send-client-auth-state))

@@ -6,12 +6,12 @@
 
 (core/register-module! ::vote)
 
-(defmethod core/initial-state ::vote []
+(defmethod core/on-init ::vote []
   {::polls-by-id {}
    ::name nil
    ::questions []})
 
-(defmethod core/handle-msg ::clicked-open-account-button [input]
+(defmethod core/on-msg ::clicked-open-account-button [input]
   (-> input auth.client/push-route-account))
 
 (defmethod client.routing/location->route "/" [_input]

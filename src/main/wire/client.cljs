@@ -20,7 +20,7 @@
 ;; 
 ;; 
 
-(defmethod core/initial-state ::wire []
+(defmethod core/on-init ::wire []
   {::status :connecting})
 
 ;; 
@@ -36,8 +36,8 @@
 
 (def to-server-msgs-chan (chan))
 
-(defmethod core/handle-effect! ::send-to-server [input]
-  (let [msgs (-> input :effect :msgs)]
+(defmethod core/on-eff! ::send-to-server [input]
+  (let [msgs (-> input :eff :msgs)]
     (put! to-server-msgs-chan msgs)
     input))
   
@@ -71,7 +71,7 @@
   (set-session-id! session-id)
   (send-session-id! socket))
 
-(defmethod core/subscriptions! ::wire [{:keys [dispatch!]}]
+(defmethod core/msgs! ::wire [{:keys [dispatch!]}]
   (let [socket-config {:query {:session-id (get-session-id!)}}
         socket (socket-io/io server-url (clj->js socket-config))] 
     

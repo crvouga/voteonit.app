@@ -21,7 +21,7 @@
 ;; 
 ;; 
 
-(defmethod core/initial-state ::routing []
+(defmethod core/on-init ::routing []
   {::stack []})
 
 (defn to-current-route [input]
@@ -50,7 +50,7 @@
   {:type ::current-route-changed
    :route route})
 
-(defmethod core/handle-msg ::current-route-changed [input]
+(defmethod core/on-msg ::current-route-changed [input]
   (let [route (-> input :msg :route)]
     (-> input (replace-stack route))))
 
@@ -87,8 +87,8 @@
 (defn- push! [route]
   (js/history.pushState nil nil (route->pathname route)))
 
-(defmethod core/handle-effect! ::push [input]
-  (let [route (-> input :effect :route)]
+(defmethod core/on-eff! ::push [input]
+  (let [route (-> input :eff :route)]
     (push! route)
     input))
 
@@ -104,7 +104,7 @@
       (core/append-effect {:type ::pop-route})
       (pop-stack)))
 
-(defmethod core/handle-effect! ::pop-route [input]
+(defmethod core/on-eff! ::pop-route [input]
   (js/history.back)
   input)
   
@@ -152,7 +152,7 @@
         (when route
           (dispatch! msg))))))
 
-(defmethod core/subscriptions! ::routing [{:keys [dispatch!]}]
+(defmethod core/msgs! ::routing [{:keys [dispatch!]}]
   (.addEventListener js/window "hashchange" put-route!)
   (dispatch-route-changes! dispatch!)
   (put-route!))

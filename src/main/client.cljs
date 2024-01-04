@@ -31,7 +31,7 @@
 ;; 
 ;; 
 
-(def state! (r/atom (core/initial-state)))
+(def state! (r/atom (core/on-init)))
 
 (defn dispatch! [msg]
   (core/step! state! msg))
@@ -41,5 +41,5 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (core/subscriptions! {:state! state! :dispatch! dispatch!})
+  (core/msgs! {:state! state! :dispatch! dispatch!})
   (rd/render [root-view] (js/document.getElementById "root")))

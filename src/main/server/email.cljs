@@ -30,6 +30,6 @@
                        :provider :send-grid
                        :email email}))
   
-(defmethod core/handle-effect! :send-email [input]
+(defmethod core/on-eff! :send-email [input]
   (send-email! input))
 

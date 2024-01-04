@@ -25,7 +25,7 @@
 ;; 
 ;; 
 
-(defmethod core/initial-state ::auth []
+(defmethod core/on-init ::auth []
   {::email ""
    ::current-user-account nil
    ::loading-user-account? true
@@ -38,7 +38,7 @@
 ;; 
 ;; 
 
-(defmethod core/handle-event [::auth :something-happend] [input]
+(defmethod core/on-evt [::auth :something-happend] [input]
   (println "Something happend" input)
   input)
 
@@ -78,46 +78,46 @@
 ;; 
 ;; 
 
-(defmethod core/handle-msg ::user-inputted-email [input]
+(defmethod core/on-msg ::user-inputted-email [input]
   (assoc input ::email (-> input :msg :email)))
 
-(defmethod core/handle-msg ::clicked-send-login-link [input]
+(defmethod core/on-msg ::clicked-send-login-link [input]
   (let [email (-> input ::email)
         to-server {:type auth.core/user-clicked-send-login-link-email :email email}
         output (wire.client/send-to-server input to-server)] 
     output))
 
-(defmethod core/handle-msg ::user-clicked-continue-as-guest [input]
+(defmethod core/on-msg ::user-clicked-continue-as-guest [input]
   (let [to-server {:type auth.core/user-clicked-continue-as-guest}
         output (wire.client/send-to-server input to-server)] 
     output))
 
 
-(defmethod core/handle-msg auth.core/current-user-account [input]
+(defmethod core/on-msg auth.core/current-user-account [input]
   (-> input
       (assoc ::current-user-account (-> input :msg :account))
       (assoc ::loading-user-account? false)
       (assoc ::logging-out? false)))
 
-(defmethod core/handle-msg ::user-clicked-logout-button [input]
+(defmethod core/on-msg ::user-clicked-logout-button [input]
   (-> input
       (wire.client/send-to-server {:type auth.core/user-clicked-logout-button})
       (assoc ::logging-out? true)))
 
-(defmethod core/handle-msg auth.core/user-logged-out [input]
+(defmethod core/on-msg auth.core/user-logged-out [input]
   (-> input
       (assoc ::current-user-account nil)
       (assoc ::logging-out? false)
       (client.routing/push-route :login-route)
       show-auth-state-toast))
 
-(defmethod core/handle-msg auth.core/user-logged-in [input]
+(defmethod core/on-msg auth.core/user-logged-in [input]
   (-> input
       (assoc ::current-user-account (-> input :msg :account))
       (assoc ::logging-out? false)
       show-auth-state-toast))
 
-(defmethod core/handle-msg ::clicked-back-button [input]
+(defmethod core/on-msg ::clicked-back-button [input]
   (-> input client.routing/pop-route))
 
 

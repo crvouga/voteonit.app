@@ -4,5 +4,5 @@
 
 (core/register-module! ::vote)
 
-(defmethod core/initial-state ::vote []
+(defmethod core/on-init ::vote []
   {::polls-by-id {}})

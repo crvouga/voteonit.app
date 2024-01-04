@@ -14,7 +14,7 @@
 
 (core/register-module! ::wire)
 
-(defmethod core/initial-state ::wire []
+(defmethod core/on-init ::wire []
   {::sockets-by-client-id {}})
 
 ;; 
@@ -27,7 +27,7 @@
 
 (def client-connected ::client-connected)
 
-(defmethod core/handle-msg ::client-connected [input]
+(defmethod core/on-msg ::client-connected [input]
   (let [event (merge (:msg input) {:type client-connected})]
     (core/publish-event input event)))
 
@@ -38,11 +38,11 @@
 
 (def to-client-msgs-chan (chan))
 
-(defmethod core/handle-effect! ::send-to-client [input] 
-  (put! to-client-msgs-chan (-> input :effect))
+(defmethod core/on-eff! ::send-to-client [input] 
+  (put! to-client-msgs-chan (-> input :eff))
   input)
 
-(defmethod core/handle-effect! ::broadcast [input]
+(defmethod core/on-eff! ::broadcast [input]
   input)
 
 
@@ -124,6 +124,6 @@
                            :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
                            :credentials false}})
 
-(defmethod core/subscriptions! ::wire [{:keys [^js http-server dispatch!]}] 
+(defmethod core/msgs! ::wire [{:keys [^js http-server dispatch!]}] 
   (let [io (new socket-io/Server http-server (clj->js socket-config))]
     (.on io "connection" #(on-connect dispatch! %))))

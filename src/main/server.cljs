@@ -60,7 +60,7 @@
 ;; 
 ;; 
 
-(def state! (atom (core/initial-state)))
+(def state! (atom (core/on-init)))
 
 (defn dispatch! [msg]
   (core/step! state! msg))
@@ -68,7 +68,7 @@
 (defn main []
   (println "[main] server starting")
   (.listen http-server port on-listen)
-  (core/subscriptions! {:http-server http-server :dispatch! dispatch!})
+  (core/msgs! {:http-server http-server :dispatch! dispatch!})
   (vreset! server-ref http-server))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}

@@ -19,7 +19,7 @@
 ;; 
 ;; 
 
-(defmethod core/initial-state ::toast []
+(defmethod core/on-init ::toast []
   {::toast nil})
 
 ;; 
@@ -46,8 +46,8 @@
 ;; 
 ;; 
 
-(defmethod core/handle-command ::show-toast [input] 
-  (let [message (-> input :command :message)
+(defmethod core/on-cmd ::show-toast [input] 
+  (let [message (-> input :cmd :message)
         toast (new-toast message)]
     (-> input 
         (assoc ::toast toast))))
@@ -61,7 +61,7 @@
 ;; 
 ;; 
 
-(defmethod core/handle-msg ::time-passed [input]
+(defmethod core/on-msg ::time-passed [input]
   (let [toast (-> input ::toast)
         removed (assoc input ::toast nil)
         output (if (toast-expired? toast) removed input)]
@@ -91,7 +91,7 @@
 ;; 
 ;; 
 
-(defmethod core/subscriptions! ::toast [{:keys [state! dispatch!]}]
+(defmethod core/msgs! ::toast [{:keys [state! dispatch!]}]
   (go-loop []
     (when (not (nil? (-> @state! ::toast)))
       (dispatch! {:type ::time-passed}))
