@@ -79,7 +79,7 @@
 ;; 
 
 (defmethod core/on-msg ::user-inputted-email [input]
-  (assoc input ::email (-> input :msg :email)))
+  (assoc input ::email (-> input core/msg :email)))
 
 (defmethod core/on-msg ::clicked-send-login-link [input]
   (let [email (-> input ::email)
@@ -95,7 +95,7 @@
 
 (defmethod core/on-msg auth.core/current-user-account [input]
   (-> input
-      (assoc ::current-user-account (-> input :msg :account))
+      (assoc ::current-user-account (-> input core/msg :account))
       (assoc ::loading-user-account? false)
       (assoc ::logging-out? false)))
 
@@ -113,7 +113,7 @@
 
 (defmethod core/on-msg auth.core/user-logged-in [input]
   (-> input
-      (assoc ::current-user-account (-> input :msg :account))
+      (assoc ::current-user-account (-> input core/msg :account))
       (assoc ::logging-out? false)
       show-auth-state-toast))
 

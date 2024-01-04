@@ -51,7 +51,7 @@
    :route route})
 
 (defmethod core/on-msg ::current-route-changed [input]
-  (let [route (-> input :msg :route)]
+  (let [route (-> input core/msg :route)]
     (-> input (replace-stack route))))
 
 
@@ -81,14 +81,14 @@
 
 (defn push-route [input route] 
   (-> input
-      (core/append-effect {:type ::push :route route})
+      (core/add-eff {:type ::push :route route})
       (push-stack route)))
 
 (defn- push! [route]
   (js/history.pushState nil nil (route->pathname route)))
 
 (defmethod core/on-eff! ::push [input]
-  (let [route (-> input :eff :route)]
+  (let [route (-> input core/eff :route)]
     (push! route)
     input))
 
@@ -101,7 +101,7 @@
 
 (defn pop-route [input]
   (-> input
-      (core/append-effect {:type ::pop-route})
+      (core/add-eff {:type ::pop-route})
       (pop-stack)))
 
 (defmethod core/on-eff! ::pop-route [input]

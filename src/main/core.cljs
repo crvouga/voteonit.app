@@ -19,17 +19,28 @@
 ;; 
 ;; 
 
-(defmulti on-init (fn [input] (-> input :module)))
+(def msg ::msg)
 
-(defmulti on-msg (fn [input] (-> input :msg :type)))
+(def eff ::eff)
 
-(defmulti on-eff! (fn [input] (-> input :eff :type)))
+(def cmd ::cmd)
 
-(defmulti msgs! (fn [input] (-> input :module)))
+(def evt ::evt)
 
-(defmulti on-cmd (fn [input] (-> input :cmd :type)))
+(defmulti on-init (fn [input] (-> input ::module)))
 
-(defmulti on-evt (fn [input] [(-> input :module) (-> input :msg :type)]))
+(defmulti on-msg (fn [input] (-> input ::msg :type)))
+
+(defmulti on-eff! (fn [input] (-> input ::eff :type)))
+
+(defmulti msgs! (fn [input] (-> input ::module)))
+
+(defmulti on-cmd (fn [input] (-> input ::cmd :type)))
+
+(defmulti on-evt (fn [input] [(-> input ::module) (-> input ::evt :type)]))
+
+
+
 
 ;; 
 ;; 
@@ -42,7 +53,7 @@
 (defmethod on-init :default []
   (println "@modules" @modules)
   (reduce 
-   (fn [acc module] (merge acc (on-init (assoc acc :module module))))
+   (fn [acc module] (merge acc (on-init (assoc acc ::module module))))
    {}
    @modules))
 
@@ -55,15 +66,15 @@
   input)
 
 (defmethod on-evt :default [input]
-  (println "Unhandled event" (-> input :msg :type))
+  (println "Unhandled event" input)
   input)
 
 (defmethod msgs! nil [input] 
   (doseq [module @modules]
-    (msgs! (assoc input :module module))))
+    (msgs! (assoc input ::module module))))
 
 (defmethod msgs! :default [input] 
-  (println "Unhandled sub" input))
+  (println "Unhandled msgs!" input))
 
 
 (defmethod on-eff! :default [input]
@@ -76,11 +87,11 @@
 ;; 
 ;; 
 
-(defn append-effect [input effect]
-  (update input :effs conj effect))
+(defn add-eff [input effect]
+  (update input ::effs conj effect))
 
-(defn append-command [input command]
-  (update input :cmds conj command))
+(defn add-cmd [input command]
+  (update input ::cmds conj command))
 
 ;; 
 ;; 
@@ -88,50 +99,75 @@
 ;; 
 ;; 
 
-(defn ->effects [output]
-  (or (-> output :effs seq) []))
+(defn- ->effs [output]
+  (or (-> output ::effs seq) []))
 
-(defn ->commands [output]
-  (or (-> output :cmds seq) []))
+(defn- ->cmds [output]
+  (or (-> output ::cmds seq) []))
 
 (defn print-msg [input]
-  (let [command (-> input :cmd)
-        msg (-> input :msg)
-        effect (-> input :eff)]
-    (when command (println (str "[command] " (pr-str command) "\n")))
-    (when msg (println (str "[msg] " (pr-str msg) "\n")))
-    (when effect (println (str "[effect] " (pr-str effect) "\n")))))
+  (let [command (-> input ::cmd)
+        msg (-> input ::msg)
+        effect (-> input ::eff)]
+    
+    (when command 
+      (println (str "[cmd] " (pr-str command) "\n")))
+    
+    (when msg 
+      (println (str "[msg] " (pr-str msg) "\n")))
+    
+    (when effect 
+      (println (str "[eff] " (pr-str effect) "\n")))))
+
+(defn ->on-cmd-input [input cmd]
+  (-> input (dissoc ::cmds ::effs) (assoc ::cmd cmd)))
+
+(defn ->on-msg-input [input msg]
+  (-> input (dissoc ::cmds ::effs) (assoc ::msg msg)))
+
+(defn ->on-eff-input [input eff]
+  (-> input (dissoc ::cmds ::effs) (assoc ::eff eff)))
+
+
+(declare stepper-recur!)
+
+(defn stepper-cmds! [output cmds]
+  (let [input (->on-cmd-input output (first cmds))
+        output-from-command (on-cmd input)
+        output-next (merge output-from-command
+                           {::effs (concat (->effs output) (->effs output-from-command))
+                            ::cmds (concat (rest cmds) (->cmds output-from-command))})]
+    (print-msg input)
+    (stepper-recur! output-next)))
+
+(defn stepper-effs! [output effs]
+  (let [input (->on-eff-input output (first effs))
+        output-from-effect (on-eff! input)
+        output-next (merge output-from-effect
+                           {::effs (concat (rest effs) (->effs output-from-effect))
+                            ::cmds (concat (->cmds output) (->cmds output-from-effect))})]
+    (print-msg input)
+    (stepper-recur! output-next)))
+
+(defn stepper-recur! [output]
+  (let [effs (->effs output)
+        cmds (->cmds output)]
+    (cond 
+      (first cmds) 
+      (stepper-cmds! output cmds)
+      
+      (first effs)
+      (stepper-effs! output effs)
+      
+      :else
+      output)))
 
 (defn stepper! 
-  [state msg]
-  (let [input {:state state :msg msg}
-        output-from-msg (on-msg input)]
+  [state msg] 
+  (let [input (->on-msg-input state msg)]
     (print-msg input)
-    (loop [running-output output-from-msg]
-     (let [effects (->effects running-output)
-           commands (->commands running-output)]
-       (cond 
-         (first commands) 
-         (let [input (-> running-output (dissoc :cmds :effs) (assoc :cmd (first commands)))
-               output-from-command (on-cmd input)
-               output-next (merge output-from-command
-                                  {:effs (concat effects (->effects output-from-command))
-                                   :cmds (concat (rest commands) (->commands output-from-command))})]
-           (print-msg input)
-           (recur output-next))
-         
-         (first effects)
-         (let [input (-> running-output (dissoc :cmds :effs) (assoc :eff (first effects)))
-               output-from-effect (on-eff! input)
-               output-next (merge output-from-effect
-                                  {:effs (concat (rest effects) (->effects output-from-effect))
-                                   :cmds (concat commands (->commands output-from-effect))})]
-           (print-msg input)
-           (recur output-next))
-         
-         :else
-         running-output)))))
-
+    (stepper-recur! (on-msg input))))
+    
 (defn step! 
   [state! msg] 
   (reset! state! (stepper! @state! msg)))
@@ -146,17 +182,17 @@
 
 
 (defn publish-event [input event]
-  (append-effect input {:type ::publish-event :msg event}))
+  (add-eff input {:type ::publish-event ::evt event}))
 
 (defmethod on-eff! ::publish-event [input] 
-  (loop [running-output (dissoc input :eff)
+  (loop [running-output (dissoc input ::eff)
          modules @modules]
     (if (empty? modules)
         running-output
-        (let [msg  (-> input :eff :msg)
-              output-from-event (on-evt (assoc input :msg msg :module (first modules)))
+        (let [event (-> input ::eff ::evt)
+              output-from-event (on-evt (assoc input ::evt event ::module (first modules)))
               output-next (merge output-from-event
-                                 {:effs (concat (->effects running-output) (->effects output-from-event))
-                                  :cmds (concat (->commands running-output) (->commands output-from-event))})] 
+                                 {::effs (concat (->effs running-output) (->effs output-from-event))
+                                  ::cmds (concat (->cmds running-output) (->cmds output-from-event))})] 
           (println "output-next" output-next)
           (recur output-next (rest modules))))))

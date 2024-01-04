@@ -31,13 +31,13 @@
 
 (defn send-to-server [input & msgs]
   (let [effect {:type ::send-to-server 
-                :msgs msgs}]
-    (core/append-effect input effect)))
+                :to-server-msgs msgs}]
+    (core/add-eff input effect)))
 
 (def to-server-msgs-chan (chan))
 
 (defmethod core/on-eff! ::send-to-server [input]
-  (let [msgs (-> input :eff :msgs)]
+  (let [msgs (-> input core/eff :to-server-msgs)]
     (put! to-server-msgs-chan msgs)
     input))
   

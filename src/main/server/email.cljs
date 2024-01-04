@@ -24,11 +24,10 @@
 ;; 
 
 (defn send-email
-  [input {:keys [email]}]
-  (core/append-effect input 
-                      {:type :send-email
+  [input]
+  (core/add-eff input {:type :send-email
                        :provider :send-grid
-                       :email email}))
+                       :email (-> input core/eff :email)}))
   
 (defmethod core/on-eff! :send-email [input]
   (send-email! input))

@@ -73,14 +73,14 @@
 
 
 (defn to-user-account [input]
-  (let [session-id (-> input :msg :session-id)
+  (let [session-id (-> input core/msg :session-id)
         user-id (-> input ::user-id-by-session-id (get session-id))
         account (-> input ::accounts-by-user-id (get user-id))]
     account))
 
 (defn send-logged-in [input]
   (let [account (to-user-account input)
-        client-id (-> input :msg :client-id)
+        client-id (-> input core/msg :client-id)
         to-client {:type auth.core/user-logged-in :account account}]
     (wire.server/send-to-client input client-id to-client)))
 
@@ -92,7 +92,7 @@
 ;; 
 
 (defmethod core/on-msg auth.core/user-clicked-send-login-link-email [input] 
-  (let [login-link-email (make-login-login-email  (-> input :msg :email))
+  (let [login-link-email (make-login-login-email  (-> input core/msg :email))
         sent-email (server.email/send-email input login-link-email)]
     sent-email))
 
@@ -103,7 +103,7 @@
       send-logged-in))
 
 (defmethod core/on-msg auth.core/user-clicked-logout-button [input] 
-  (let [client-id (-> input :msg :client-id)]
+  (let [client-id (-> input core/msg :client-id)]
     (-> input
         dissoc-session
         (wire.server/send-to-client client-id {:type auth.core/user-logged-out}))))
@@ -115,11 +115,10 @@
 ;; 
 ;; 
 
-(defn send-client-auth-state [input]
-  (let [client-id (-> input :msg :client-id)
+
+
+(defmethod core/on-evt [::auth wire.server/client-connected] [input]
+  (let [client-id (-> input core/evt :client-id)
         account (to-user-account input)
         to-client {:type auth.core/current-user-account :account account}] 
     (wire.server/send-to-client input client-id to-client)))
-
-(defmethod core/on-evt [::auth wire.server/client-connected] [input]
-  (-> input send-client-auth-state))

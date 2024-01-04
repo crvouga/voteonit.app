@@ -47,13 +47,13 @@
 ;; 
 
 (defmethod core/on-cmd ::show-toast [input] 
-  (let [message (-> input :cmd :message)
+  (let [message (-> input core/cmd :message)
         toast (new-toast message)]
     (-> input 
         (assoc ::toast toast))))
 
 (defn show-toast [input message]
-  (core/append-command input {:type ::show-toast :message message}))
+  (core/add-cmd input {:type ::show-toast :message message}))
 
 ;; 
 ;; 

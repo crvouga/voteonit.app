@@ -28,18 +28,18 @@
 (def client-connected ::client-connected)
 
 (defmethod core/on-msg ::client-connected [input]
-  (let [event (merge (:msg input) {:type client-connected})]
+  (let [event (merge (core/msg input) {:type client-connected})]
     (core/publish-event input event)))
 
 (defn send-to-client [input client-id & msgs]
-  (core/append-effect input {:type ::send-to-client 
+  (core/add-eff input {:type ::send-to-client 
                         :client-id client-id 
-                        :msgs msgs}))
+                        :to-client-msgs msgs}))
 
 (def to-client-msgs-chan (chan))
 
 (defmethod core/on-eff! ::send-to-client [input] 
-  (put! to-client-msgs-chan (-> input :eff))
+  (put! to-client-msgs-chan (-> input core/eff))
   input)
 
 (defmethod core/on-eff! ::broadcast [input]
@@ -66,7 +66,7 @@
   (while true
     (let [to-client (<! to-client-msgs-chan)
           client-id (-> to-client :client-id)
-          msgs (-> to-client :msgs)
+          msgs (-> to-client :to-client-msgs)
           encoded-msgs (wire.core/edn-encode msgs)
           socket (get @sockets-by-client-id client-id)
           emit (fn [^js socket] (.emit socket "to-client-msgs" encoded-msgs))]
