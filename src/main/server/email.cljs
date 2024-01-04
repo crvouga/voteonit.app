@@ -15,7 +15,8 @@
 
 (defmethod send-email! :mail-gun [])
 
-(defmethod send-email! :default [])
+(defmethod send-email! :default [input]
+  (send-email! (assoc input :provider :send-grid)))
   
 ;; 
 ;; 
@@ -24,11 +25,9 @@
 ;; 
 
 (defn send-email
-  [input]
-  (core/add-eff input {:type :send-email
-                       :provider :send-grid
-                       :email (-> input core/eff :email)}))
+  [input email]
+  (core/add-eff input {:type ::send-email :email email}))
   
-(defmethod core/on-eff! :send-email [input]
+(defmethod core/on-eff! ::send-email [input]
   (send-email! input))
 

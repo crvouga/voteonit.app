@@ -30,9 +30,9 @@
 ;; 
 
 (defn send-to-server [input & msgs]
-  (let [effect {:type ::send-to-server 
+  (let [eff {:type ::send-to-server 
                 :to-server-msgs msgs}]
-    (core/add-eff input effect)))
+    (core/add-eff input eff)))
 
 (def to-server-msgs-chan (chan))
 
