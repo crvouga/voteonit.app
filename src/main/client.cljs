@@ -36,10 +36,14 @@
 (defn dispatch! [msg]
   (core/step! state! msg))
 
+(defn input! []
+  (merge @state! {:dispatch! dispatch!}))
+
 (defn root-view [] 
-  [view (merge @state! {:dispatch! dispatch!})])
+  [view (input!)])
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
+  (core/init! (input!))
   (core/msgs! {:state! state! :dispatch! dispatch!})
   (rd/render [root-view] (js/document.getElementById "root")))

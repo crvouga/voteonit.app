@@ -175,6 +175,9 @@
 (defn step! 
   [state! msg] 
   (reset! state! (stepper! @state! msg)))
+
+(defn init! [state!] 
+  (reset! state! (stepper-recur! (on-init @state!))))
   
 ;; 
 ;; 
