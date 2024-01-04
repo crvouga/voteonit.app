@@ -185,6 +185,14 @@
 (defmethod core/on-msg ::clicked-back-button [input]
   (-> input client.routing/pop-route))
 
+
+
+(defmethod client.routing/location->route ::auth [input]
+  {"/login" {:type ::login}
+   "/account" {:type ::account}})
+
+client.routing/location->route
+
 (defmethod client.routing/view-route ::account [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:p.text-xl.font-bold "Account"]
