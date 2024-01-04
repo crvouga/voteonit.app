@@ -1,6 +1,5 @@
 (ns client.routing
   (:require [cljs.core.async :refer [<! chan go put!]]
-            [clojure.string :as string]
             [core]))
             
 
@@ -55,30 +54,24 @@
   (let [route (-> input :msg :route)]
     (-> input (replace-stack route))))
 
-;; 
-;; 
+
 ;; 
 ;; 
 ;; 
 ;; 
 ;; 
 
+(def routes 
+  {"/" {:type :vote}
+   "/login" {:type :login}
+   "/account" {:type :account}})
 
-(defn encode-map-to-url-string [m]
-  (let [encode (fn [[k v]] (str (name k) "=" (js/encodeURIComponent v)))
-        pairs (map encode m)]
-    (clojure.string/join "&" pairs)))
+(defn pathname->route [pathname]
+  (get routes pathname {:type :vote}))
 
-(defn decode-url-string-to-map [query-string]
-  (let [search-params (js/URLSearchParams. query-string)
-        result {}]
-    (.forEach search-params
-      (fn [value key]
-        (let [keyword-key (keyword key)]
-          (if (contains? result keyword-key)
-            (update result keyword-key conj (js/decodeURIComponent value))
-            (assoc result keyword-key [(js/decodeURIComponent value)])))))
-    result))
+(defn route->pathname [route]
+  (or (first (filter #(= route (second %)) routes)) "/"))
+
 ;; 
 ;; 
 ;; 
@@ -92,30 +85,13 @@
       (push-stack route)))
 
 (defn- push! [route]
-  (js/history.pushState nil nil (encode-map-to-url-string route)))
+  (js/history.pushState nil nil (route->pathname route)))
 
 (defmethod core/handle-effect! ::push [input]
   (let [route (-> input :effect :route)]
     (push! route)
     input))
 
-;; 
-;; 
-;; 
-;; 
-
-(defn replace-route [input route] 
-  (-> input
-      (core/append-effect {:type ::replace-route :route route})
-      (replace-stack route)))
-
-(defn- replace-route! [route]
-  (js/history.replaceState nil nil (encode-map-to-url-string route)))
-
-(defmethod core/handle-effect! ::replace-route [input]
-  (let [route (-> input :effect :route)]
-    (replace-route! route)
-    input))
 
 ;; 
 ;; 
@@ -143,7 +119,7 @@
 (defmulti view-route (fn [input] (-> input to-current-route :type)))
 
 (defmethod view-route :default [input]
-  [:div (str "Page not found" (::stack input))])
+  [:div (str "Page not found")])
 
 ;; 
 ;; 
@@ -153,10 +129,7 @@
 ;; 
 
 (defn- get-route! []
-  (let [query-string (-> js/location .-search (string/replace-first #"^\?" ""))
-        route (decode-url-string-to-map query-string)
-        route-final (if (empty? route) nil route)]
-    route-final))
+  (pathname->route (.-pathname js/window.location)))
 
 (def route-chan (chan))
 
@@ -164,7 +137,7 @@
   (let [route (get-route!)]
     (println route)
     (when route 
-      (put! route-chan (get-route!)))))
+      (put! route-chan route))))
     
 (defn dispatch-route-changes! [dispatch!]
   (go

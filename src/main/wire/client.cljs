@@ -4,9 +4,35 @@
             [wire.core]
             [cljs.core.async :refer [chan put! go <!]]))
 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(core/register-module! ::wire)
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmethod core/initial-state ::wire []
+  {::status :connecting})
+
+;; 
+;; 
+;; 
+;; 
+;; 
+
 (defn send-to-server [input & msgs]
-  (core/append-effect input {:type ::send-to-server 
-                        :msgs msgs}))
+  (let [effect {:type ::send-to-server 
+                :msgs msgs}]
+    (core/append-effect input effect)))
 
 (def to-server-msgs-chan (chan))
 
@@ -45,7 +71,7 @@
   (set-session-id! session-id)
   (send-session-id! socket))
 
-(defn subscriptions! [_state! dispatch!]
+(defmethod core/subscriptions! ::wire [{:keys [dispatch!]}]
   (let [socket-config {:query {:session-id (get-session-id!)}}
         socket (socket-io/io server-url (clj->js socket-config))] 
     

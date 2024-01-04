@@ -128,15 +128,19 @@
 ;; 
 ;; 
 
-(defn open-account-screen [input]
-  (-> input (client.routing/push-route {:type :acount-route})))
+(defn push-route-account [input]
+  (-> input (client.routing/push-route {:type ::account})))
+
+(defn push-route-login [input]
+  (-> input (client.routing/push-route {:type ::login})))
+
 ;; 
 ;; 
 ;; 
 ;; 
 ;; 
 
-(defmethod client.routing/view-route :acount-route [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view-route ::account [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:p.text-xl.font-bold "Account"]
    [ui.button/view {:text "Back" :on-click #(dispatch! {:type ::clicked-back-button})}]
@@ -145,7 +149,7 @@
      :loading? (::logging-out? input)
      :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])
 
-(defmethod client.routing/view-route :login-route [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view-route ::login [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    

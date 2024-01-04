@@ -12,9 +12,9 @@
    ::questions []})
 
 (defmethod core/handle-msg ::clicked-open-account-button [input]
-  (-> input auth.client/open-account-screen))
+  (-> input auth.client/push-route-account))
 
-(defmethod client.routing/view-route :polls [{:keys [dispatch!]}]
+(defmethod client.routing/view-route ::polls [{:keys [dispatch!]}]
   [:div "polls"
   [ui.button/view 
    {:text "Open account" :on-click #(dispatch! {:type ::clicked-open-account-button})}]])

@@ -21,29 +21,64 @@
 
 (defmulti initial-state (fn [input] (-> input :module)))
 
-(defmulti handle-msg (fn [input] (-> input :msg :type)))
-
-(defmulti handle-command (fn [input] (-> input :command :type)))
-
-(defmulti handle-event (fn [input] [(-> input :module) (-> input :msg :type)]))
-
-(defmulti handle-effect! (fn [input] (-> input :effect :type)))
-
-(defmulti subscriptions! (fn [input] (-> input :module)))
-
-;; 
-;; 
-;; 
-;; 
-;; 
-;; 
-
 (defmethod initial-state :default []
   (println "@modules" @modules)
   (reduce 
    (fn [acc module] (merge acc (initial-state (assoc acc :module module))))
    {}
    @modules))
+
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+
+(defmulti handle-msg (fn [input] (-> input :msg :type)))
+
+(defmethod handle-msg :default  [input]
+  (println "Unhandled msg" input)
+  input)
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmulti handle-command (fn [input] (-> input :command :type)))
+
+(defmethod handle-command :default [input]
+  (println "Unhandled cmd" input)
+  input)
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmulti handle-event (fn [input] [(-> input :module) (-> input :msg :type)]))
+
+(defmethod handle-event :default [input]
+  (println "Unhandled event" (-> input :msg :type))
+  input)
+
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmulti subscriptions! (fn [input] (-> input :module)))
 
 (defmethod subscriptions! nil [input] 
   (doseq [module @modules]
@@ -52,13 +87,14 @@
 (defmethod subscriptions! :default [input] 
   (println "Unhandled sub" input))
 
-(defmethod handle-msg :default  [input]
-  (println "Unhandled msg" input)
-  input)
 
-(defmethod handle-command :default [input]
-  (println "Unhandled cmd" input)
-  input)
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmulti handle-effect! (fn [input] (-> input :effect :type)))
 
 (defmethod handle-effect! :default [input]
   (println "Unhandled eff!" input)

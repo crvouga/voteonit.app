@@ -2,5 +2,7 @@
   (:require [core]))
 
 
-(defmethod core/initial-state []
+(core/register-module! ::vote)
+
+(defmethod core/initial-state ::vote []
   {::polls-by-id {}})
