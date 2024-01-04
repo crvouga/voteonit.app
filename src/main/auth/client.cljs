@@ -131,8 +131,15 @@
 (defn push-route-account [input]
   (-> input (client.routing/push-route {:type ::account})))
 
-(defn push-route-login [input]
-  (-> input (client.routing/push-route {:type ::login})))
+
+(defmethod client.routing/location->route "/account" [_]
+  {:type ::account})
+
+(defmethod client.routing/route->location ::account []
+  {:pathname "/account"})
+
+(defmethod client.routing/location->route "/login" [_]
+  {:type ::login})
 
 ;; 
 ;; 

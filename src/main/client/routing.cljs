@@ -1,5 +1,6 @@
 (ns client.routing
   (:require [cljs.core.async :refer [<! chan go put!]]
+            [client.location]
             [core]))
             
 
@@ -36,7 +37,6 @@
   (-> input 
       (pop-stack)
       (push-stack route)))
-
 
 
 ;; 
@@ -116,9 +116,14 @@
 ;; 
 ;; 
 
+
+(defmulti location->route (fn [input] (-> input :location :pathname)))
+
+(defmulti route->location (fn [input] (-> input :route :type)))
+
 (defmulti view-route (fn [input] (-> input to-current-route :type)))
 
-(defmethod view-route :default [input]
+(defmethod view-route :default [_input]
   [:div (str "Page not found")])
 
 ;; 

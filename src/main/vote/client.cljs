@@ -14,6 +14,9 @@
 (defmethod core/handle-msg ::clicked-open-account-button [input]
   (-> input auth.client/push-route-account))
 
+(defmethod client.routing/location->route "/" [_input]
+  {:type ::polls})
+
 (defmethod client.routing/view-route ::polls [{:keys [dispatch!]}]
   [:div "polls"
   [ui.button/view 
