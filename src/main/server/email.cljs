@@ -9,14 +9,14 @@
 ;; 
 ;; 
 
-(defmulti send-email! (fn [input] (-> input :provider)))
+(defmulti send-email! (fn [input] (-> input ::provider)))
 
 (defmethod send-email! :send-grid [])
 
 (defmethod send-email! :mail-gun [])
 
 (defmethod send-email! :default [input]
-  (send-email! (assoc input :provider :send-grid)))
+  (send-email! (assoc input ::provider :send-grid)))
   
 ;; 
 ;; 
