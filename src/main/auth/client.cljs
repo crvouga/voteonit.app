@@ -45,6 +45,7 @@
 ;; 
 ;; 
 ;; 
+;; Toast
 ;; 
 ;; 
 ;; 
@@ -74,24 +75,10 @@
 ;; 
 ;; 
 ;; 
+;; Current User
 ;; 
 ;; 
 ;; 
-
-(defmethod core/on-msg ::user-inputted-email [input]
-  (assoc input ::email (-> input core/msg :email)))
-
-(defmethod core/on-msg ::clicked-send-login-link [input]
-  (let [email (-> input ::email)
-        to-server {:type auth.core/user-clicked-send-login-link-email :email email}
-        output (wire.client/send-to-server input to-server)] 
-    output))
-
-(defmethod core/on-msg ::user-clicked-continue-as-guest [input]
-  (let [to-server {:type auth.core/user-clicked-continue-as-guest}
-        output (wire.client/send-to-server input to-server)] 
-    output))
-
 
 (defmethod core/on-msg auth.core/current-user-account [input]
   (-> input
@@ -116,9 +103,6 @@
       (assoc ::current-user-account (-> input core/msg :account))
       (assoc ::logging-out? false)
       show-auth-state-toast))
-
-(defmethod core/on-msg ::clicked-back-button [input]
-  (-> input client.routing/pop-route))
 
 
 ;; 
@@ -145,16 +129,26 @@
 ;; 
 ;; 
 ;; 
+;; Login Screen
+;; 
+;; 
+;; 
 ;; 
 
-(defmethod client.routing/view-route ::account [{:keys [dispatch!] :as input}] 
-  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
-   [:p.text-xl.font-bold "Account"]
-   [ui.button/view {:text "Back" :on-click #(dispatch! {:type ::clicked-back-button})}]
-   [ui.button/view 
-    {:text "Logout"
-     :loading? (::logging-out? input)
-     :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])
+(defmethod core/on-msg ::user-inputted-email [input]
+  (assoc input ::email (input ::inputted-email)))
+
+(defmethod core/on-msg ::clicked-send-login-link [input]
+  (let [email (-> input ::email)
+        to-server (auth.core/->user-clicked-send-login-link-email email)
+        output (wire.client/send-to-server input to-server)] 
+    output))
+
+(defmethod core/on-msg ::user-clicked-continue-as-guest [input]
+  (let [to-server (core/msg auth.core/user-clicked-continue-as-guest)
+        output (wire.client/send-to-server input to-server)] 
+    output))
+
 
 (defmethod client.routing/view-route ::login [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
@@ -164,11 +158,11 @@
     {:label "Email"
      :value (::email input) 
      :type :email
-     :on-value #(dispatch! {:type ::user-inputted-email :email %})}]
+     :on-value #(dispatch! {core/msg ::user-inputted-email ::inputted-email %})}]
    
    [ui.button/view 
     {:text "Send login link" 
-     :on-click #(dispatch! {:type ::user-clicked-send-login-link})}]
+     :on-click #(dispatch! {core/msg auth.core/user-clicked-send-login-link-email})}]
    
    [:p.text-neutral-500.lowercase.text-lg "or"]
 
@@ -176,3 +170,26 @@
     {:text "Continue as guest"
      :on-click #(dispatch! {:type ::user-clicked-continue-as-guest})}]])
 
+
+
+;; 
+;; 
+;; 
+;; 
+;; Account Screen
+;; 
+;; 
+;; 
+;; 
+
+(defmethod core/on-msg ::clicked-back-button [input]
+  (-> input client.routing/pop-route))
+
+(defmethod client.routing/view-route ::account [{:keys [dispatch!] :as input}] 
+  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
+   [:p.text-xl.font-bold "Account"]
+   [ui.button/view {:text "Back" :on-click #(dispatch! {:type ::clicked-back-button})}]
+   [ui.button/view 
+    {:text "Logout"
+     :loading? (::logging-out? input)
+     :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])

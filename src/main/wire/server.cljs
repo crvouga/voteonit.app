@@ -25,16 +25,15 @@
 ;; 
 ;; 
 
-(def client-connected ::client-connected)
+(def client-connected {core/evt client-connected})
 
 (defmethod core/on-msg ::client-connected [input]
-  (let [event (merge (core/msg input) {:type client-connected})]
-    (core/publish-event input event)))
+  (core/publish-event input (merge input client-connected)))
 
 (defn send-to-client [input client-id & msgs]
-  (core/add-eff input {:type ::send-to-client 
-                        :client-id client-id 
-                        :to-client-msgs msgs}))
+  (core/add-eff input {core/cmd ::send-to-client 
+                       :client-id client-id 
+                       :to-client-msgs msgs}))
 
 (def to-client-msgs-chan (chan))
 

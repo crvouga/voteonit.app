@@ -81,7 +81,7 @@
 
 (defn push-route [input route] 
   (-> input
-      (core/add-eff {:type ::push :route route})
+      (core/add-eff ::push :route route)
       (push-stack route)))
 
 (defn- push! [route]
