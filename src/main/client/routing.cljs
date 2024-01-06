@@ -25,9 +25,10 @@
 ;; 
 
 (defmethod core/on-init ::routing []
-  {::current-route nil})
+  {::current-route (client.route/get-route!)})
 
-(def ->current-route ::current-route)
+(defn ->current-route-path [input]
+  (-> input ::current-route client.route/route->path))
 
 ;; 
 ;; 

@@ -127,16 +127,14 @@
 
 (def route-chan! (async/chan))
 
-(defn- get-route! []
+(defn get-route! []
   (let [url (get-url!)
-        route (url->route url)]
-    route))
+        route (url->route url)
+        route-final (or route default-route)]
+    route-final))
 
-(defn- put-route! []
-  (let [got-route (get-route!)
-        new-route (or got-route default-route)]
-    (println "put-route!" new-route)
-    (async/put! route-chan! new-route)))
+(defn- put-route! [] 
+  (async/put! route-chan! (get-route!)))
 
 (defn start-listening! []
   (replace-route! (get-route!))

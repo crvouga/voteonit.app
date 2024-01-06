@@ -53,16 +53,19 @@
 
 (defn to-auth-state [input]
   (cond
-    (-> input ::loading-user-account?) :loading
-    (-> input ::current-user-account nil? not) :logged-in
-    :else :logged-out))
+    (-> input ::loading-user-account?) ::loading
+    (-> input ::current-user-account nil? not) ::logged-in
+    :else ::logged-out))
+
+(defn logged-out? [input]
+  (= (to-auth-state input) ::logged-out))
 
 
 (defn to-toast-message [input]
   (let [auth-state (to-auth-state input)]
     (cond
-      (= auth-state :logged-in) "Logged in"
-      (= auth-state :logged-out) "Logged out"
+      (= auth-state ::logged-in) "Logged in"
+      (= auth-state ::logged-out) "Logged out"
       :else nil)))
 
 (defn show-auth-state-toast [input]
@@ -184,6 +187,17 @@
       (assoc ::logging-out? false)
       show-auth-state-toast))
 
+
+(defn redirect-to-login-if-logged-out [input]
+  (let [path (client.routing/->current-route-path input)
+        redirect? (and (logged-out? input) (not= path ::route-login))
+        redirected (client.routing/push-route input (route-login))
+        output (if redirect? redirected input)]
+    output))
+
+
+(defmethod core/on-evt [::auth :route-changed] [input]
+  (redirect-to-login-if-logged-out input))
 
 ;; 
 ;; 
