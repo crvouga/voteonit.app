@@ -81,7 +81,7 @@
 (defn send-logged-in [input]
   (let [account (to-user-account input)
         client-id (-> input core/msg :client-id)
-        to-client {:type auth.core/user-logged-in :account account}]
+        to-client {core/msg auth.core/user-logged-in :account account}]
     (wire.server/send-to-client input client-id to-client)))
 
 ;; 
@@ -106,7 +106,7 @@
   (let [client-id (-> input core/msg :client-id)]
     (-> input
         dissoc-session
-        (wire.server/send-to-client client-id {:type auth.core/user-logged-out}))))
+        (wire.server/send-to-client client-id {core/msg auth.core/user-logged-out}))))
 
 ;; 
 ;; 
@@ -120,5 +120,5 @@
 (defmethod core/on-evt [::auth wire.server/client-connected] [input]
   (let [client-id (-> input core/evt :client-id)
         account (to-user-account input)
-        to-client {:type auth.core/current-user-account :account account}] 
+        to-client {core/msg auth.core/current-user-account :account account}] 
     (wire.server/send-to-client input client-id to-client)))

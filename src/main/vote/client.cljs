@@ -11,14 +11,49 @@
    ::name nil
    ::questions []})
 
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
 (defmethod core/on-msg ::clicked-open-account-button [input]
-  (-> input (client.routing/push-route auth.client/route-account)))
+  (-> input 
+      (client.routing/push-route (auth.client/route-account))))
 
-(def route-polls {:type ::polls})
+(defn route-polls []
+  (client.routing/->route ::route-polls {}))
 
-(defmethod client.routing/view-route ::polls [{:keys [dispatch!]}]
+(defmethod client.routing/view-route ::route-polls [{:keys [dispatch!]}]
   [:div "polls"
   [ui.button/view 
-   {:text "Open account" :on-click #(dispatch! {:type ::clicked-open-account-button})}]])
+   {:text "Open account" 
+    :on-click #(dispatch! {core/msg ::clicked-open-account-button})}]])
+
+;; 
+;; 
+;; 
+;; 
+
+(defmethod core/on-msg ::clicked-go-home-button [input]
+  (-> input (client.routing/push-route (route-polls))))
+
+(defmethod client.routing/view-route :default [{:keys [dispatch!]}]
+  [:div 
+   "Page not found"
+   [ui.button/view 
+    {:text "Go Home" 
+     :on-click #(dispatch! {core/msg ::clicked-go-home-button})}]])
+
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
 
 (defmethod core/msgs! ::vote [])

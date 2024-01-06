@@ -27,8 +27,7 @@
 (defmethod core/on-init ::routing []
   {::current-route nil})
 
-(defn to-current-route [input]
-  (-> input ::current-route))
+(def ->current-route ::current-route)
 
 ;; 
 ;; 
@@ -37,13 +36,12 @@
 ;; 
 ;; 
 
-(defn push-route [input route] 
-  (-> input
-      (assoc ::current-route route)
-      (core/add-eff ::push {:route route})))
+(defn push-route [input new-route]  
+  (let [effect-added (core/add-eff input ::push {::route new-route})]
+    effect-added))
 
-(defmethod core/on-eff! ::push [input]
-  (let [new-route (-> input core/eff :route)]
+(defmethod core/on-eff! ::push [input] 
+  (let [new-route (-> input ::route)]
     (client.route/push-route! new-route)
     input))
 
@@ -60,30 +58,24 @@
   (client.route/pop-route!)
   input)
   
-
-
 ;; 
 ;; 
 ;; 
 ;; 
 ;; 
 ;; 
-
-(defn- current-route-change [route]
-  {core/msg ::current-route-changed
-   ::route route})
 
 (defmethod core/on-msg ::current-route-changed [input]
-  (let [route-new (-> input core/msg ::route)]
+  (let [route-new (-> input ::route)]
     (-> input 
         (assoc ::current-route route-new))))
     
 (defn msgs-current-route-changed! [dispatch!]
   (async/go
     (while true
-      (let [route (async/<! client.route/route-chan!)
-            msg (current-route-change route)]
-        (dispatch! msg)))))
+      (let [route (async/<! client.route/route-chan!)]
+        (println "route changed" route)
+        (dispatch! {core/msg ::current-route-changed ::route route})))))
 
 ;; 
 ;; 
@@ -92,21 +84,10 @@
 ;; 
 ;; 
 
-(defmulti view-route (fn [input] (-> input ::current-route :type)))
+(defn ->route [path payload]
+  (client.route/->route path payload))
 
-
-;; 
-;; 
-;; 
-;; 
-;; 
-
-(defmethod core/on-msg ::clicked-go-home-button [input]
-  (push-route input :home-route))
-
-(defmethod view-route :default [{:keys [dispatch!]}]
-  [:div 
-   [ui.button/view {:text "Go Home" :on-click #(dispatch! {core/msg ::clicked-go-home-button})}]])
+(defmulti view-route (fn [input] (-> input ::current-route client.route/route->path)))
 
 ;; 
 ;; 

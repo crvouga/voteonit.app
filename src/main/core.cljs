@@ -44,7 +44,7 @@
 
 (defmulti on-msg (fn [input] (msg input)))
 
-(defmulti on-eff! eff)
+(defmulti on-eff! (fn [input] (eff input)))
 
 (defmulti msgs! module-dispatch)
 
@@ -206,6 +206,7 @@
         next-effs (concat (rest effs) (->effs output-from-eff))
         next-cmds (concat (->cmds output) (->cmds output-from-eff))
         next-output (merge output-from-eff {::effs next-effs ::cmds next-cmds})]
+    #_(println "stepper-effs!" (select-keys input (keys (first effs))))
     (print-msg input)
     next-output))
 

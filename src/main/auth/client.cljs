@@ -72,38 +72,6 @@
       input)))
 
 
-;; 
-;; 
-;; 
-;; Current User
-;; 
-;; 
-;; 
-
-(defmethod core/on-msg auth.core/current-user-account [input]
-  (-> input
-      (assoc ::current-user-account (-> input core/msg :account))
-      (assoc ::loading-user-account? false)
-      (assoc ::logging-out? false)))
-
-(defmethod core/on-msg ::user-clicked-logout-button [input]
-  (-> input
-      (wire.client/send-to-server {:type auth.core/user-clicked-logout-button})
-      (assoc ::logging-out? true)))
-
-(defmethod core/on-msg auth.core/user-logged-out [input]
-  (-> input
-      (assoc ::current-user-account nil)
-      (assoc ::logging-out? false)
-      (client.routing/push-route :login-route)
-      show-auth-state-toast))
-
-(defmethod core/on-msg auth.core/user-logged-in [input]
-  (-> input
-      (assoc ::current-user-account (-> input core/msg :account))
-      (assoc ::logging-out? false)
-      show-auth-state-toast))
-
 
 ;; 
 ;; 
@@ -129,7 +97,7 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
-(defn route-login [] {:type ::route-login})
+(defn route-login [] (client.routing/->route ::route-login {}))
 
 (defmethod client.routing/view-route ::route-login [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
@@ -138,7 +106,7 @@
    [ui.textfield/view 
     {:label "Email"
      :value (::email input) 
-     :type :email
+     core/msg :email
      :on-value #(dispatch! {core/msg ::user-inputted-email ::inputted-email %})}]
    
    [ui.button/view 
@@ -149,7 +117,7 @@
 
    [ui.button/view 
     {:text "Continue as guest"
-     :on-click #(dispatch! {:type ::user-clicked-continue-as-guest})}]])
+     :on-click #(dispatch! {core/msg ::user-clicked-continue-as-guest})}]])
 
 
 
@@ -163,10 +131,15 @@
 ;; 
 ;; 
 
-(defmethod core/on-msg ::user-clicked-back-button [input]
+(defmethod core/on-msg ::clicked-account-screen-back-button [input]
   (-> input client.routing/pop-route))
 
-(defn route-account [] {:type ::route-account})
+(defmethod core/on-msg ::clicked-logout-button [input]
+  (-> input
+      (wire.client/send-to-server {core/msg auth.core/user-clicked-logout-button})
+      (assoc ::logging-out? true)))
+
+(defn route-account [] (client.routing/->route ::route-account {}))
 
 (defmethod client.routing/view-route ::route-account [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
@@ -175,13 +148,41 @@
    
    [ui.button/view 
     {:text "Back" 
-     :on-click #(dispatch! {:type ::user-clicked-back-button})}]
+     :on-click #(dispatch! {core/msg ::clicked-account-screen-back-button})}]
    
    [ui.button/view 
     {:text "Logout"
      :loading? (::logging-out? input)
-     :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])
+     :on-click #(dispatch! {core/msg ::clicked-logout-button})}]])
 
+
+
+;; 
+;; 
+;; 
+;; Current User
+;; 
+;; 
+;; 
+
+(defmethod core/on-msg auth.core/current-user-account [input]
+  (-> input
+      (assoc ::current-user-account (-> input core/msg :account))
+      (assoc ::loading-user-account? false)
+      (assoc ::logging-out? false)))
+
+(defmethod core/on-msg auth.core/user-logged-out [input]
+  (-> input
+      (assoc ::current-user-account nil)
+      (assoc ::logging-out? false)
+      (client.routing/push-route (route-login))
+      show-auth-state-toast))
+
+(defmethod core/on-msg auth.core/user-logged-in [input]
+  (-> input
+      (assoc ::current-user-account (-> input core/msg :account))
+      (assoc ::logging-out? false)
+      show-auth-state-toast))
 
 
 ;; 

@@ -5,7 +5,7 @@
 (def email ::email)
 
 (defn ->user-clicked-send-login-link-email [email]
-  {::type user-clicked-send-login-link-email
+  {:core/msg user-clicked-send-login-link-email
    ::email email})
 
 

@@ -53,7 +53,7 @@
         (assoc ::toast toast))))
 
 (defn show-toast [input message]
-  (core/add-cmd input {:type ::show-toast :message message}))
+  (core/add-cmd input {core/msg ::show-toast :message message}))
 
 ;; 
 ;; 
@@ -94,6 +94,6 @@
 (defmethod core/msgs! ::toast [{:keys [state! dispatch!]}]
   (go-loop []
     (when (not (nil? (-> @state! ::toast)))
-      (dispatch! {:type ::time-passed}))
+      (dispatch! {core/msg ::time-passed}))
     (<! (timeout 1000))
     (recur)))

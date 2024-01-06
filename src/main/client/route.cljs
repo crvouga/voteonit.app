@@ -11,11 +11,21 @@
 ;; 
 ;; 
 
-(spec/def ::type keyword?)
+(spec/def ::path keyword?)
 
-(spec/def ::route (spec/keys :req [::type]))
+(spec/def ::route (spec/keys :req [::path]))
 
-(def default-route {:type nil})
+(defn route->path [route]
+  (-> route ::path))
+
+(defn ->route 
+  ([route-path] 
+   (->route route-path {}))
+  
+  ([route-path route-payload] 
+   (merge {::path route-path} route-payload)))
+
+(def default-route (->route nil))
 
 ;; 
 ;; 
@@ -81,7 +91,7 @@
 (defn- url->route [url]
   (let [url! (js/URL. url)
         encoded-route (.get (.-searchParams url!) route-key)
-        decoded-route (base-64->edn encoded-route)]
+        decoded-route (base-64->edn encoded-route)] 
     (when (spec/valid? ::route decoded-route)
       decoded-route)))
 
@@ -125,6 +135,7 @@
 (defn- put-route! []
   (let [got-route (get-route!)
         new-route (or got-route default-route)]
+    (println "put-route!" new-route)
     (async/put! route-chan! new-route)))
 
 (defn start-listening! []

@@ -97,7 +97,7 @@
          (doseq [msg (decode-msgs encoded-msgs client-id session-id)]
            (dispatch! msg))))
   
-  (dispatch! {:type ::client-connected 
+  (dispatch! {core/msg ::client-connected 
               :client-id client-id 
               :session-id session-id}))
 
