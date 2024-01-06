@@ -28,7 +28,7 @@
 (def client-connected {core/evt client-connected})
 
 (defmethod core/on-msg ::client-connected [input]
-  (core/publish-event input (merge input client-connected)))
+  (core/add-evt input (merge input client-connected)))
 
 (defn send-to-client [input client-id & msgs]
   (core/add-eff input {core/cmd ::send-to-client 

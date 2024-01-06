@@ -36,13 +36,13 @@
 ;; 
 ;; 
 
-(defmulti on-init module)
+(defmulti on-init (fn [input] (when input (module input))))
 
 (defmulti on-msg msg)
 
 (defmulti on-eff! eff)
 
-(defmulti msgs! module)
+(defmulti msgs! (fn [input] (when input (module input))))
 
 (defmulti on-cmd cmd)
 
@@ -121,6 +121,9 @@
 (defn- ->cmds [output]
   (or (-> output ::cmds seq) []))
 
+(defn- ->evts [output]
+  (or (-> output ::evts seq) []))
+
 (defmulti print-msg (fn [input] (first (filter input [::cmd ::msg ::eff ::evt]))))
 
 (defmethod print-msg cmd [input]
@@ -160,46 +163,34 @@
 ;; 
 ;; 
 
-(defn- stepper-events! [output events]
-  (loop [running-output (dissoc output ::eff)
-         modules @modules]
-    (if (empty? modules)
-        running-output
-        (let [event (::evt (first events))
-              output-from-event (on-evt (assoc input ::evt event ::module (first modules)))
-              next-effects (concat (->effs running-output) (->effs output-from-event))
-              next-commands (concat (->cmds running-output) (->cmds output-from-event))
-              next-output (merge output-from-event {::effs next-effects ::cmds next-commands})] 
-          (print-msg event)
-          (recur next-output (rest modules))))))
-
-(defn- stepper-commands! [output commands]
-  (let [input (->on-cmd-input output (first commands))
+  
+(defn- stepper-cmds! [output cmds]
+  (let [input (->on-cmd-input output (first cmds))
         output-from-cmd (on-cmd input)
-        next-effects (concat (->effs output) (->effs output-from-cmd))
-        next-commands (concat (rest commands) (->cmds output-from-cmd))
-        next-output (merge output-from-cmd {::effs next-effects ::cmds next-commands})]
+        next-effs (concat (->effs output) (->effs output-from-cmd))
+        next-cmds (concat (rest cmds) (->cmds output-from-cmd))
+        next-output (merge output-from-cmd {::effs next-effs ::cmds next-cmds})]
     (print-msg input)
     next-output))
 
-(defn- stepper-effects! [output effects]
-  (let [input (->on-eff-input output (first effects))
+(defn- stepper-effs! [output effs]
+  (let [input (->on-eff-input output (first effs))
         output-from-eff (on-eff! input)
-        next-effects (concat (rest effects) (->effs output-from-eff))
-        next-commands (concat (->cmds output) (->cmds output-from-eff))
-        next-output (merge output-from-eff {::effs next-effects ::cmds next-commands})]
+        next-effs (concat (rest effs) (->effs output-from-eff))
+        next-cmds (concat (->cmds output) (->cmds output-from-eff))
+        next-output (merge output-from-eff {::effs next-effs ::cmds next-cmds})]
     (print-msg input)
     next-output))
 
 (defn- stepper-recur! [output]
-  (let [effects (->effs output) 
-        commands (->cmds output)]
+  (let [effs (->effs output) 
+        cmds (->cmds output)]
     (cond 
-      (first commands) 
-      (stepper-recur! (stepper-commands! output commands))
+      (first cmds) 
+      (stepper-recur! (stepper-cmds! output cmds))
       
-      (first effects)
-      (stepper-recur! (stepper-effects! output effects))
+      (first effs)
+      (stepper-recur! (stepper-effs! output effs))
       
       :else
       output)))

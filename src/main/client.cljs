@@ -44,6 +44,6 @@
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
-  (core/init! (input!))
+  (core/init! state!)
   (core/msgs! {:state! state! :dispatch! dispatch!})
   (rd/render [root-view] (js/document.getElementById "root")))
