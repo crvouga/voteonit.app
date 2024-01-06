@@ -1,12 +1,11 @@
 (ns client
-  (:require [auth.client]
-            ["react-dom/client" :refer [createRoot]]
+  (:require ["react-dom/client" :refer [createRoot]]
             [goog.dom :as gdom]
-            [client.routing]
-            [client.toast]
-            [core]
             [reagent.core :as r]
-            [reagent.dom :as rd]
+            [core]
+            [client.toast]
+            [auth.client]
+            [client.routing]
             [vote.client]))
 
 ;; 
@@ -56,7 +55,7 @@
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
   (core/init! state!)
-  (core/msgs! {:state! state! :dispatch! dispatch!})
-  (init-view))
+  (init-view)
+  (core/msgs! {:state! state! :dispatch! dispatch!}))
 
 

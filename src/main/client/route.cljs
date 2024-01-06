@@ -58,8 +58,7 @@
   (try
     (when base-64 
       (clojure.edn/read-string (js/atob base-64)))
-    (catch :default e
-      (println "Error occurred:" e)
+    (catch :default _e
       nil)))
 
 
@@ -126,10 +125,9 @@
 (defn- put-route! []
   (let [got-route (get-route!)
         new-route (or got-route default-route)]
-    (println "put-route!" new-route "got-route" got-route)
     (async/put! route-chan! new-route)))
 
-(defn- listen! []
+(defn start-listening! []
   (replace-route! (get-route!))
   (put-route!)
   (.addEventListener js/window "popstate" put-route!)
@@ -137,7 +135,4 @@
   (fn []
     (.removeEventListener js/window "popstate" put-route!)
     (.removeEventListener js/window "pushstate" put-route!)))
-
-(listen!)
-
 

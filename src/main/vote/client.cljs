@@ -20,3 +20,5 @@
   [:div "polls"
   [ui.button/view 
    {:text "Open account" :on-click #(dispatch! {:type ::clicked-open-account-button})}]])
+
+(defmethod core/msgs! ::vote [])

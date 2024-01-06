@@ -29,6 +29,9 @@
 
 (def module ::module)
 
+(defn- module-dispatch [input]
+  (when input (module input)))
+
 ;; 
 ;; 
 ;; 
@@ -36,13 +39,14 @@
 ;; 
 ;; 
 
-(defmulti on-init (fn [input] (when input (module input))))
 
-(defmulti on-msg msg)
+(defmulti on-init module-dispatch)
+
+(defmulti on-msg (fn [input] (msg input)))
 
 (defmulti on-eff! eff)
 
-(defmulti msgs! (fn [input] (when input (module input))))
+(defmulti msgs! module-dispatch)
 
 (defmulti on-cmd cmd)
 
@@ -58,22 +62,21 @@
 
 
 (defmethod on-init :default []
-  (println "@modules" @modules)
   (reduce 
    (fn [acc module] (merge acc (on-init (assoc acc ::module module))))
    {}
    @modules))
 
 (defmethod on-cmd :default [input]
-  (println "Unhandled cmd" input)
+  (println "Unhandled cmd" (cmd input))
   input)
 
 (defmethod on-msg :default  [input]
-  (println "Unhandled msg" input)
+  (println "Unhandled msg" (msg input))
   input)
 
 (defmethod on-evt :default [input]
-  (println "Unhandled event" input)
+  (println "Unhandled event" (evt input))
   input)
 
 (defmethod msgs! nil [input] 
@@ -81,13 +84,31 @@
     (msgs! (assoc input ::module module))))
 
 (defmethod msgs! :default [input] 
-  (println "Unhandled msgs!" input))
+  (println "Unhandled msgs!" (module-dispatch input)))
 
 
 (defmethod on-eff! :default [input]
-  (println "Unhandled eff!" input)
+  (println "Unhandled eff!" (eff input))
   input)
 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+
+(defn- ->effs [output]
+  (or (-> output ::effs seq) []))
+
+(defn- ->cmds [output]
+  (or (-> output ::cmds seq) []))
+
+(defn- ->evts [output]
+  (or (-> output ::evts seq) []))
+
 
 ;; 
 ;; 
@@ -97,9 +118,12 @@
 ;; 
 ;; 
 
-(defn add-eff [input effect-type & effect-payload]
-  (let [effect (merge effect-payload {::eff effect-type})]
-    (update input ::effs conj effect)))
+(defn add-eff [input effect-type effect-payload]
+  (let [eff-new (merge {::eff effect-type} effect-payload)
+        effs-prev (->effs input)
+        effs-new (conj effs-prev eff-new)
+        output (assoc input ::effs effs-new)]
+    output))
 
 (defn add-cmd [input command]
   (update input ::cmds conj command))
@@ -114,15 +138,6 @@
 ;; 
 ;; 
 ;; 
-
-(defn- ->effs [output]
-  (or (-> output ::effs seq) []))
-
-(defn- ->cmds [output]
-  (or (-> output ::cmds seq) []))
-
-(defn- ->evts [output]
-  (or (-> output ::evts seq) []))
 
 (defmulti print-msg (fn [input] (first (filter input [::cmd ::msg ::eff ::evt]))))
 
@@ -145,17 +160,29 @@
 (defn dissoc-outputs [input]
   (dissoc input ::cmds ::effs))
 
-(defn ->on-cmd-input [input command]
-  (-> input dissoc-outputs (assoc cmd command)))
+(defn ->on-cmd-input [input cmd]
+  (-> input 
+      dissoc-outputs 
+      (dissoc ::msg ::eff ::evt) 
+      (merge cmd)))
 
-(defn ->on-msg-input [input message]
-  (-> input dissoc-outputs (assoc ::msg message)))
+(defn ->on-msg-input [input msg]
+  (-> input 
+      dissoc-outputs 
+      (dissoc ::cmd ::eff ::evt)
+      (merge msg)))
 
-(defn ->on-eff-input [input effect]
-  (-> input dissoc-outputs (assoc ::eff effect)))
+(defn ->on-eff-input [input eff]
+  (-> input 
+      dissoc-outputs 
+      (dissoc ::cmd ::msg ::evt)
+      (merge eff)))
 
-(defn ->on-evt-input [input event]
-  (-> input dissoc-outputs (assoc ::evt event)))
+(defn ->on-evt-input [input evt]
+  (-> input 
+      dissoc-outputs 
+      (dissoc ::cmd ::msg ::eff)
+      (merge evt)))
 
 ;; 
 ;; 
@@ -197,9 +224,10 @@
 
 (defn- stepper! 
   [state message] 
-  (let [input (->on-msg-input state message)]
+  (let [input (->on-msg-input state message)
+        output-from-msg (on-msg input)]
     (print-msg input)
-    (stepper-recur! (on-msg input))))
+    (stepper-recur! output-from-msg)))
     
 (defn step! 
   [state! message] 

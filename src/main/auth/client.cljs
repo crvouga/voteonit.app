@@ -181,3 +181,17 @@
     {:text "Logout"
      :loading? (::logging-out? input)
      :on-click #(dispatch! {:type ::user-clicked-logout-button})}]])
+
+
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+
+(defmethod core/msgs! ::auth [])

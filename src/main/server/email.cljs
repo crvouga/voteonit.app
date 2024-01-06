@@ -26,7 +26,7 @@
 
 (defn send-email
   [input email]
-  (core/add-eff input {:type ::send-email :email email}))
+  (core/add-eff input ::send-email {:email email}))
   
 (defmethod core/on-eff! ::send-email [input]
   (send-email! input))

@@ -31,9 +31,7 @@
   (core/add-evt input (merge input client-connected)))
 
 (defn send-to-client [input client-id & msgs]
-  (core/add-eff input {core/cmd ::send-to-client 
-                       :client-id client-id 
-                       :to-client-msgs msgs}))
+  (core/add-eff input ::send-to-client {:client-id client-id :to-client-msgs msgs}))
 
 (def to-client-msgs-chan (chan))
 

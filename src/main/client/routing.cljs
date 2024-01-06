@@ -1,6 +1,7 @@
 (ns client.routing
   (:require [cljs.core.async :as async]
             [client.route]
+            [ui.button]
             [clojure.string]
             [clojure.edn]
             [core]))
@@ -39,7 +40,7 @@
 (defn push-route [input route] 
   (-> input
       (assoc ::current-route route)
-      (core/add-eff ::push :route route)))
+      (core/add-eff ::push {:route route})))
 
 (defmethod core/on-eff! ::push [input]
   (let [new-route (-> input core/eff :route)]
@@ -53,7 +54,7 @@
 
 (defn pop-route [input]
   (-> input
-      (core/add-eff {:type ::pop-route})))
+      (core/add-eff ::pop-route {})))
 
 (defmethod core/on-eff! ::pop-route [input]
   (client.route/pop-route!)
@@ -69,7 +70,7 @@
 ;; 
 
 (defn- current-route-change [route]
-  {:type ::current-route-changed
+  {core/msg ::current-route-changed
    ::route route})
 
 (defmethod core/on-msg ::current-route-changed [input]
@@ -82,7 +83,6 @@
     (while true
       (let [route (async/<! client.route/route-chan!)
             msg (current-route-change route)]
-        (println "route changed" route)
         (dispatch! msg)))))
 
 ;; 
@@ -94,8 +94,19 @@
 
 (defmulti view-route (fn [input] (-> input ::current-route :type)))
 
-(defmethod view-route :default [_input]
-  [:div (str "Page not found")])
+
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmethod core/on-msg ::clicked-go-home-button [input]
+  (push-route input :home-route))
+
+(defmethod view-route :default [{:keys [dispatch!]}]
+  [:div 
+   [ui.button/view {:text "Go Home" :on-click #(dispatch! {core/msg ::clicked-go-home-button})}]])
 
 ;; 
 ;; 
@@ -107,4 +118,5 @@
 ;; 
 
 (defmethod core/msgs! ::routing [{:keys [dispatch!]}]
-  (msgs-current-route-changed! dispatch!))
+  (msgs-current-route-changed! dispatch!)
+  (client.route/start-listening!))
