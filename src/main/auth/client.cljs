@@ -109,26 +109,6 @@
 ;; 
 ;; 
 ;; 
-;; 
-;; 
-
-(defn push-route-account [input]
-  (-> input (client.routing/push-route {:type ::account})))
-
-
-(defmethod client.routing/location->route "/account" [_]
-  {:type ::account})
-
-(defmethod client.routing/route->location ::account []
-  {:pathname "/account"})
-
-(defmethod client.routing/location->route "/login" [_]
-  {:type ::login})
-
-;; 
-;; 
-;; 
-;; 
 ;; Login Screen
 ;; 
 ;; 
@@ -149,8 +129,9 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
+(defn route-login [] {:type ::route-login})
 
-(defmethod client.routing/view-route ::login [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view-route ::route-login [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
@@ -182,21 +163,20 @@
 ;; 
 ;; 
 
-(defmethod core/on-msg ::clicked-back-button [input]
+(defmethod core/on-msg ::user-clicked-back-button [input]
   (-> input client.routing/pop-route))
 
+(defn route-account [] {:type ::route-account})
 
-
-(defmethod client.routing/location->route ::auth [input]
-  {"/login" {:type ::login}
-   "/account" {:type ::account}})
-
-client.routing/location->route
-
-(defmethod client.routing/view-route ::account [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view-route ::route-account [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
+   
    [:p.text-xl.font-bold "Account"]
-   [ui.button/view {:text "Back" :on-click #(dispatch! {:type ::clicked-back-button})}]
+   
+   [ui.button/view 
+    {:text "Back" 
+     :on-click #(dispatch! {:type ::user-clicked-back-button})}]
+   
    [ui.button/view 
     {:text "Logout"
      :loading? (::logging-out? input)

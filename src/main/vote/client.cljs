@@ -12,10 +12,9 @@
    ::questions []})
 
 (defmethod core/on-msg ::clicked-open-account-button [input]
-  (-> input auth.client/push-route-account))
+  (-> input (client.routing/push-route auth.client/route-account)))
 
-(defmethod client.routing/location->route "/" [_input]
-  {:type ::polls})
+(def route-polls {:type ::polls})
 
 (defmethod client.routing/view-route ::polls [{:keys [dispatch!]}]
   [:div "polls"

@@ -1,11 +1,13 @@
 (ns client
-  (:require [reagent.dom :as rd] 
-            [reagent.core :as r]
-            [client.toast]
+  (:require [auth.client]
+            ["react-dom/client" :refer [createRoot]]
+            [goog.dom :as gdom]
             [client.routing]
-            [vote.client]
-            [auth.client]
-            [core]))
+            [client.toast]
+            [core]
+            [reagent.core :as r]
+            [reagent.dom :as rd]
+            [vote.client]))
 
 ;; 
 ;; 
@@ -36,14 +38,25 @@
 (defn dispatch! [msg]
   (core/step! state! msg))
 
-(defn input! []
-  (merge @state! {:dispatch! dispatch!}))
+(defonce root (createRoot (gdom/getElement "root")))
 
-(defn root-view [] 
-  [view (input!)])
+;; https://stackoverflow.com/questions/72389560/how-to-rerender-reagent-ui-with-react-18-and-shadow-cljs-reload
+
+(defn view-main []
+  [view (merge @state! {:dispatch! dispatch!})])
+
+(defn init-view
+  []
+  (.render root (r/as-element [view-main])))
+
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defn ^:dev/after-load re-render []
+  (init-view))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn main []
   (core/init! state!)
   (core/msgs! {:state! state! :dispatch! dispatch!})
-  (rd/render [root-view] (js/document.getElementById "root")))
+  (init-view))
+
+
