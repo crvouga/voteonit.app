@@ -39,7 +39,6 @@
 ;; 
 
 (defmethod core/on-evt [::auth :something-happend] [input]
-  (println "Something happend" input)
   input)
 
 ;; 
@@ -100,9 +99,10 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
-(defn route-login [] (client.routing/->route ::route-login {}))
+(defn route-login [] 
+  {client.routing/path ::route-login})
 
-(defmethod client.routing/view-route ::route-login [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view ::route-login [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
@@ -142,9 +142,10 @@
       (wire.client/send-to-server {core/msg auth.core/user-clicked-logout-button})
       (assoc ::logging-out? true)))
 
-(defn route-account [] (client.routing/->route ::route-account {}))
+(defn route-account [] 
+  {client.routing/path ::route-account})
 
-(defmethod client.routing/view-route ::route-account [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view ::route-account [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    
    [:p.text-xl.font-bold "Account"]

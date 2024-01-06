@@ -22,7 +22,7 @@
     {:style {:height "100dvh"}}
     [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative
      [client.toast/view input]
-     [client.routing/view-route input]]])
+     [client.routing/view input]]])
 
 ;; 
 ;; 

@@ -1,4 +1,4 @@
-(ns client.route
+(ns core.routing
   (:require [clojure.string]
             [clojure.edn]
             [clojure.spec.alpha :as spec]
@@ -15,17 +15,9 @@
 
 (spec/def ::route (spec/keys :req [::path]))
 
-(defn route->path [route]
-  (-> route ::path))
+(def path ::path)
 
-(defn ->route 
-  ([route-path] 
-   (->route route-path {}))
-  
-  ([route-path route-payload] 
-   (merge {::path route-path} route-payload)))
-
-(def default-route (->route nil))
+(def default-route {::path nil})
 
 ;; 
 ;; 
@@ -125,6 +117,7 @@
 ;; 
 ;; 
 
+
 (def route-chan! (async/chan))
 
 (defn get-route! []
@@ -138,10 +131,8 @@
 
 (defn start-listening! []
   (replace-route! (get-route!))
-  (put-route!)
   (.addEventListener js/window "popstate" put-route!)
-  (.addEventListener js/window "pushstate" put-route!)
-  (fn []
-    (.removeEventListener js/window "popstate" put-route!)
-    (.removeEventListener js/window "pushstate" put-route!)))
+  (.addEventListener js/window "pushstate" put-route!))
 
+
+   

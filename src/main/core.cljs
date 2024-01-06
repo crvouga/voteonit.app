@@ -21,11 +21,23 @@
 
 (def msg ::msg)
 
+(defn ->msg [msg-type msg-payload] 
+   (merge msg-payload {::msg msg-type}))
+
 (def eff ::eff)
+
+(defn ->eff [eff-type eff-payload] 
+   (merge eff-payload {::eff eff-type}))
 
 (def cmd ::cmd)
 
+(defn ->cmd [cmd-type cmd-payload] 
+   (merge cmd-payload {::cmd cmd-type}))
+
 (def evt ::evt)
+
+(defn ->evt [evt-type evt-payload] 
+   (merge evt-payload {::evt evt-type}))
 
 (def module ::module)
 
@@ -118,12 +130,16 @@
 ;; 
 ;; 
 
-(defn add-eff [input effect-type effect-payload]
-  (let [eff-new (merge {::eff effect-type} effect-payload)
-        effs-prev (->effs input)
-        effs-new (conj effs-prev eff-new)
-        output (assoc input ::effs effs-new)]
-    output))
+(defn add-eff 
+  ([input effect-type] 
+   (add-eff input effect-type {}))
+  
+  ([input effect-type effect-payload]
+   (let [eff-new (merge {::eff effect-type} effect-payload)
+         effs-prev (->effs input)
+         effs-new (conj effs-prev eff-new)
+         output (assoc input ::effs effs-new)]
+     output)))
 
 (defn add-cmd [input command]
   (update input ::cmds conj command))

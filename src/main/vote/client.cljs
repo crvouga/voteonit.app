@@ -24,9 +24,9 @@
       (client.routing/push-route (auth.client/route-account))))
 
 (defn route-polls []
-  (client.routing/->route ::route-polls {}))
+  {client.routing/path ::route-polls})
 
-(defmethod client.routing/view-route ::route-polls [{:keys [dispatch!]}]
+(defmethod client.routing/view ::route-polls [{:keys [dispatch!]}]
   [:div "polls"
   [ui.button/view 
    {:text "Open account" 
@@ -40,7 +40,7 @@
 (defmethod core/on-msg ::clicked-go-home-button [input]
   (-> input (client.routing/push-route (route-polls))))
 
-(defmethod client.routing/view-route :default [{:keys [dispatch!]}]
+(defmethod client.routing/view :default [{:keys [dispatch!]}]
   [:div 
    "Page not found"
    [ui.button/view 

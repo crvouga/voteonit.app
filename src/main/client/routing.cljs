@@ -1,6 +1,6 @@
 (ns client.routing
   (:require [cljs.core.async :as async]
-            [client.route]
+            [core.routing]
             [ui.button]
             [clojure.string]
             [clojure.edn]
@@ -25,10 +25,12 @@
 ;; 
 
 (defmethod core/on-init ::routing []
-  {::current-route (client.route/get-route!)})
+  {::current-route (core.routing/get-route!)})
+
+(def path core.routing/path)
 
 (defn ->current-route-path [input]
-  (-> input ::current-route client.route/route->path))
+  (-> input ::current-route path))
 
 ;; 
 ;; 
@@ -37,26 +39,18 @@
 ;; 
 ;; 
 
-(defn push-route [input new-route]  
-  (let [effect-added (core/add-eff input ::push {::route new-route})]
-    effect-added))
+(defn push-route [input route] 
+  (core/add-eff input ::push-route {::new-route route}))
 
-(defmethod core/on-eff! ::push [input] 
-  (let [new-route (-> input ::route)]
-    (client.route/push-route! new-route)
-    input))
-
-;; 
-;; 
-;; 
-;; 
+(defmethod core/on-eff! ::push-route [input] 
+  (core.routing/push-route! (::new-route input))
+  input)
 
 (defn pop-route [input]
-  (-> input
-      (core/add-eff ::pop-route {})))
+  (core/add-eff input ::pop-route))
 
 (defmethod core/on-eff! ::pop-route [input]
-  (client.route/pop-route!)
+  (core.routing/pop-route!)
   input)
   
 ;; 
@@ -66,17 +60,13 @@
 ;; 
 ;; 
 
-(defmethod core/on-msg ::current-route-changed [input]
-  (let [route-new (-> input ::route)]
+(defmethod core/on-msg ::new-route [input]
+  (let [new-route (-> input ::new-route)]
+    (println "current-route-changed" new-route)
     (-> input 
-        (assoc ::current-route route-new))))
+        (assoc ::current-route new-route))))
     
-(defn msgs-current-route-changed! [dispatch!]
-  (async/go
-    (while true
-      (let [route (async/<! client.route/route-chan!)]
-        (println "route changed" route)
-        (dispatch! {core/msg ::current-route-changed ::route route})))))
+
 
 ;; 
 ;; 
@@ -85,10 +75,8 @@
 ;; 
 ;; 
 
-(defn ->route [path payload]
-  (client.route/->route path payload))
-
-(defmulti view-route (fn [input] (-> input ::current-route client.route/route->path)))
+(defmulti view 
+  (fn [input] (-> input ::current-route core.routing/path)))
 
 ;; 
 ;; 
@@ -100,5 +88,8 @@
 ;; 
 
 (defmethod core/msgs! ::routing [{:keys [dispatch!]}]
-  (msgs-current-route-changed! dispatch!)
-  (client.route/start-listening!))
+  (core.routing/start-listening!)
+  (async/go
+    (while true
+      (let [new-route (async/<! core.routing/route-chan!)]
+        (dispatch! {core/msg ::new-route ::new-route new-route})))))
