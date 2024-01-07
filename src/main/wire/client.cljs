@@ -30,12 +30,12 @@
 ;; 
 
 (defn send-to-server [input & msgs] 
-  (core/add-eff  input ::send-to-server {:to-server-msgs msgs}))
+  (core/add-eff  input ::send-to-server {::to-server-msgs msgs}))
 
 (def to-server-msgs-chan (chan))
 
 (defmethod core/on-eff! ::send-to-server [input]
-  (let [msgs (-> input core/eff :to-server-msgs)]
+  (let [msgs (-> input ::to-server-msgs)]
     (put! to-server-msgs-chan msgs)
     input))
   

@@ -85,9 +85,8 @@
     output))
 
 (defmethod core/on-msg ::user-clicked-continue-as-guest [input]
-  (let [to-server (core/msg auth.core/user-clicked-continue-as-guest)
-        output (wire.client/send-to-server input to-server)] 
-    output))
+  (let [to-server {core/msg auth.core/user-clicked-continue-as-guest}] 
+    (wire.client/send-to-server input to-server)))
 
 (defn route-login [] 
   {client.routing/path ::route-login})
@@ -148,8 +147,6 @@
     {:text "Logout"
      :loading? (::logging-out? input)
      :on-click #(dispatch! {core/msg ::clicked-logout-button})}]])
-
-
 
 ;; 
 ;; 
