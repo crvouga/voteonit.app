@@ -60,7 +60,9 @@
         (assoc-in [::accounts-by-user-id user-id] user-account))))
 
 (defn dissoc-session [input]
-  (let [{:keys [client-id session-id]} input]
+  (let [client-id (-> input :client-id)
+        session-id (-> input :session-id)]
+    (println "dissoc-session" (::session-ids input)  client-id session-id)
     (-> input
         (update ::session-id-by-client-id dissoc client-id)
         (update ::session-ids disj session-id)
@@ -90,10 +92,11 @@
 ;; 
 ;; 
 
-(defmethod core/on-msg auth.core/user-clicked-send-login-link-email [input] 
-  (let [login-link-email (make-login-login-email  (-> input :email))
-        sent-email (server.email/send-email input login-link-email)]
-    sent-email))
+(defmethod 
+  core/on-msg 
+  auth.core/user-clicked-send-login-link-email 
+  [input] 
+  input)
 
 
 (defmethod core/on-msg auth.core/user-clicked-continue-as-guest [input]

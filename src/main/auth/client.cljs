@@ -69,16 +69,17 @@
    
    [ui/button
     {:text "Send login link" 
-     :on-click #(dispatch! {core/msg auth.core/user-clicked-send-login-link-email})}]])
+     :on-click #(dispatch! {core/msg ::clicked-send-login-link})}]])
 
 (defmethod core/on-msg ::user-inputted-email [input]
   (assoc input ::email (input ::inputted-email)))
 
 (defmethod core/on-msg ::clicked-send-login-link [input]
   (let [email (-> input ::email)
-        to-server (auth.core/->user-clicked-send-login-link-email email)
-        output (wire.client/send-to-server input to-server)] 
-    output))
+        to-server (auth.core/->user-clicked-send-login-link-email email)] 
+    (-> input
+        (wire.client/send-to-server to-server)
+        (client.toast/show-toast "Not implemented yet"))))
 
 ;; 
 ;; 
