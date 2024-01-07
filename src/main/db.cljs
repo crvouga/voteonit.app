@@ -22,6 +22,10 @@
 (def datoms 
   (:datoms db-stored))
 
+(if (seq datoms)
+  (println "Found non-empty db, using it")
+  (println "No db found, using empty db"))
+
 (def conn! 
   (d/conn-from-db (d/db-with db-empty datoms)))
 

@@ -37,41 +37,11 @@
   :poll/created-at {:db/cardinality :db.cardinality/one},
   :poll-choice/poll
   {:db/cardinality :db.cardinality/one, :db/valueType :db.type/ref}},
- :eavt
- #{#datascript/Datom [1 :db/add -1 536870914 true]
-   #datascript/Datom [1 :user-account/created-at 1704671101233 536870914 true]
-   #datascript/Datom [1 :user-account/user-id "user-id:925741" 536870914 true]
-   #datascript/Datom [1 :user-account/username "Guest 39801" 536870914 true]
-   #datascript/Datom [3 :db/add -1 536870917 true]
-   #datascript/Datom [3 :user-account/created-at 1704671104106 536870917 true]
-   #datascript/Datom [3 :user-account/user-id "user-id:455866" 536870917 true]
-   #datascript/Datom [3 :user-account/username "Guest 322291" 536870917 true]
-   #datascript/Datom [4 :db/add -1 536870918 true]
-   #datascript/Datom [4 :user-session/created-at 1704671104108 536870918 true]
-   #datascript/Datom [4 :user-session/session-id "session-id:61937" 536870918 true]
-   #datascript/Datom [4 :user-session/user 3 536870918 true]},
- :aevt
- #{#datascript/Datom [1 :db/add -1 536870914 true]
-   #datascript/Datom [3 :db/add -1 536870917 true]
-   #datascript/Datom [4 :db/add -1 536870918 true]
-   #datascript/Datom [1 :user-account/created-at 1704671101233 536870914 true]
-   #datascript/Datom [3 :user-account/created-at 1704671104106 536870917 true]
-   #datascript/Datom [1 :user-account/user-id "user-id:925741" 536870914 true]
-   #datascript/Datom [3 :user-account/user-id "user-id:455866" 536870917 true]
-   #datascript/Datom [1 :user-account/username "Guest 39801" 536870914 true]
-   #datascript/Datom [3 :user-account/username "Guest 322291" 536870917 true]
-   #datascript/Datom [4 :user-session/created-at 1704671104108 536870918 true]
-   #datascript/Datom [4 :user-session/session-id "session-id:61937" 536870918 true]
-   #datascript/Datom [4 :user-session/user 3 536870918 true]},
- :avet
- #{#datascript/Datom [3 :user-account/user-id "user-id:455866" 536870917 true]
-   #datascript/Datom [1 :user-account/user-id "user-id:925741" 536870914 true]
-   #datascript/Datom [3 :user-account/username "Guest 322291" 536870917 true]
-   #datascript/Datom [1 :user-account/username "Guest 39801" 536870914 true]
-   #datascript/Datom [4 :user-session/session-id "session-id:61937" 536870918 true]
-   #datascript/Datom [4 :user-session/user 3 536870918 true]},
- :max-eid 4,
- :max-tx 536870918,
+ :eavt #{},
+ :aevt #{},
+ :avet #{},
+ :max-eid 0,
+ :max-tx 536870913,
  :rschema
  {:db.type/ref
   #{:poll-choice-vote/choice :poll/creator :poll/choices
