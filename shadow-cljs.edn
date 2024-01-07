@@ -5,9 +5,12 @@
   "src/test"]
 
  :dependencies
- [[reagent "1.1.1"]]
+ [[reagent "1.1.1"]
+  [datascript "1.6.1"]]
 
  :dev-http {8080 "public"} 
+
+ :compiler-options {:externs ["datascript/externs.js"]}
 
  :builds
  {:client

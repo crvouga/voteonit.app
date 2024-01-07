@@ -3,17 +3,30 @@
             [client.app]
             [vote.core]
             [ui.icon]
+            [wire.client]
             [client.toast]
             [auth.client.routes]
             [vote.client.routes]
             [ui]
             [core]))
 
+;; 
+;; 
+;; 
+;; 
+;; 
+
 (core/register-module! ::vote-create)
 
 (defmethod core/on-init ::vote-create []
-  {::question nil})
+  {::question ""})
 
+
+;; 
+;; 
+;; Fab
+;; 
+;; 
 
 (defn view-fab [{:keys [dispatch!]}]
   [:div.absolute.inset-0.flex.flex-col.items-end.justify-end.p-6.pointer-events-none
@@ -24,23 +37,68 @@
 (defmethod core/on-msg ::clicked-create-poll-fab [input]
   (-> input (client.routing/push-route (vote.client.routes/create-poll))))
 
+;; 
+;; 
+;; Question Input
+;; 
+;; 
+
+(defn view-question-input [{:keys [dispatch!] :as input}]
+  [ui/text-field
+   {:label "Question"
+    :value (-> input ::question)
+    :on-value #(dispatch! {core/msg ::inputted-question :question %})}])
+
+(defmethod core/on-msg ::inputted-question [input]
+  (assoc input ::question (-> input :question)))
+
+
+;; 
+;; 
+;; Submit
+;; 
+;; 
+
+(defn view-create-button [{:keys [dispatch!]}]
+  [ui/button 
+     {:text "Create" 
+      :on-click #(dispatch! {core/msg ::clicked-create-button})}])
+
 (defmethod core/on-msg ::clicked-create-button [input]
-  (-> input (client.toast/show-toast "Not implemented yet!")))
+  (-> input 
+      (wire.client/send-to-server {core/msg ::create-poll})
+      (client.toast/show-toast "Not implemented yet!")))
+
+;; 
+;; 
+;; Back
+;; 
+;; 
+
+(defn view-back-button [{:keys [dispatch!]}]
+  [ui/button 
+     {:text "Back"
+      :on-click #(dispatch! {core/msg ::clicked-back-button})}])
 
 (defmethod core/on-msg ::clicked-back-button [input]
   (-> input (client.routing/push-route (vote.client.routes/polls))))
 
+;; 
+;; 
+;; View
+;; 
+;; 
+
 (defmethod client.routing/view
   (vote.client.routes/create-poll)
-  [{:keys [dispatch!]}]
+  [input]
   [:div.w-full.h-full.flex.flex-col
    [ui/top-bar {:title "Create Poll"}]
-   [:div.flex-1]
+   
+   [:div.flex-1.flex.flex-col.p-6.gap-6
+    [view-question-input input]]
+   
    [:div.w-full.flex.items-center.gap-6.p-6.border-t.border-neutral-700
-    [ui/button 
-     {:text "Back"
-      :on-click #(dispatch! {core/msg ::clicked-back-button})}]
-    [ui/button 
-     {:text "Create" 
-      :on-click #(dispatch! {core/msg ::clicked-create-button})}]]])
+    [view-back-button input]
+    [view-create-button input]]])
 
