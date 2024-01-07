@@ -172,7 +172,12 @@
   [:div.w-full.h-full.flex.flex-col
    [ui/top-bar {:title "Account"}] 
    
-   [:div.w-full.flex-1.flex.flex-col.gap-4.px-6
+   [:div.w-full.flex-1.flex.flex-col.gap-4.p-6
+    
+    [ui/avatar {:seed (-> ::current-user-account :username) :class "w-32 h-32"}]
+    
+    [:p.text-2xl.font-bold.text-center.w-full (-> input ::current-user-account :username)]
+
     [view-logout-button input]]
    
    [client.app/bottom-bar 

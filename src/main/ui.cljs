@@ -69,10 +69,10 @@
 
 (defmulti text-field (fn [input] (-> input :variant)))
 
-(defn e->value [e]
+(defn- e->value [e]
   (-> e .-target .-value))
 
-(defn assoc-on-input-handler [input]
+(defn- assoc-on-input-handler [input]
   (let [on-value (-> input :on-value (fnil identity))
         on-input (fn [e] (on-value (e->value e)))
         input-new (-> input 
@@ -88,3 +88,15 @@
 
 (defmethod text-field :default [input]
   (text-field (assoc input :variant :contained)))
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defn avatar [{:keys [seed class]}]
+  [:img {:class (str "rounded overflow-hidden" class) 
+         :src (str "https://api.dicebear.com/7.x/thumbs/svg?seed=" seed)
+         :alt "avatar"}])
