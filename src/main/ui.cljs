@@ -83,11 +83,41 @@
 (defmethod text-field :contained
   [input]
   [:div.w-full.flex.flex-col.gap-1
-   [:label.text-sm.font-bold (str (:label input))]
+   [:label.text-sm.font-bold (str (:label input))] 
    [:input.bg-neutral-800.text-lg.text-inherit.rounded.border.p-3.w-full.border-blue-500.border-2.focus:ring-blue-500.ring-offset-3 (assoc-on-input-handler input)]])
 
 (defmethod text-field :default [input]
   (text-field (assoc input :variant :contained)))
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+
+
+
+
+(defn- text-area-e->value [e]
+  (-> e .-target .-value))
+
+(defn- text-area-assoc-on-input-handler [input]
+  (let [on-value (-> input :on-value (fnil identity))
+        on-input (fn [e] (on-value (text-area-e->value e)))
+        input-new (-> input 
+                      (assoc :on-input on-input) 
+                      (dissoc :on-value))]
+    input-new))
+
+(defn text-area [input]
+  [:div.w-full.flex.flex-col.gap-1.h-auto.overflow-y-auto.overflow-x-hidden.max-h-96
+   [:label.text-sm.font-bold (str (:label input))]
+   [:textarea.bg-neutral-800.text-lg.text-inherit.rounded.border.p-3.w-full.border-blue-500.border-2.focus:ring-blue-500.ring-offset-3.resize-none.whitespace-break-spaces 
+    (text-area-assoc-on-input-handler input)]])
 
 ;; 
 ;; 

@@ -2,7 +2,8 @@
   (:require [core]
             [auth.core]
             [wire.server]
-            [server.email]))
+            [server.email]
+            [db]))
 
 ;; 
 ;; 
@@ -11,6 +12,8 @@
 ;; 
 ;; 
 ;; 
+
+
 
 (core/register-module! ::auth)
 
@@ -36,16 +39,12 @@
 ;; 
 ;; 
 ;; 
-
-(defn make-login-login-email [email]
-  {:email email})
   
-
-(defn generate-user-id! []
+(defn user-id! []
   (str "user-id:" (rand-int 1000000)))
 
-(defn generate-guest-account []
-  (let [user-id (generate-user-id!)]
+(defn generate-guest-account! []
+  (let [user-id (user-id!)]
     {:user-id user-id
      :username (str "Guest " user-id)}))
 
@@ -69,7 +68,7 @@
         (update ::user-id-by-session-id dissoc session-id))))
 
 (defn assoc-new-guest-session [input]
-  (let [guest-account (generate-guest-account)]
+  (let [guest-account (generate-guest-account!)]
     (assoc-session input guest-account)))
 
 
