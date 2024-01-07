@@ -23,7 +23,7 @@
     [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative.overflow-hidden.border.border-neutral-700
      {:style {:max-height "900px"}}
      [client.toast/view input]
-     [client.routing/view-path input]]])
+     [client.routing/view input]]])
 
 ;; 
 ;; 

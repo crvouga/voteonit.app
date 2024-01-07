@@ -1,12 +1,8 @@
 (ns auth.client.routes
   (:require [client.routing]))
 
-(def path-account ::path-account)
+(defn account []
+  {client.routing/route-name ::account})
 
-(defn route-account [] 
-  {client.routing/path path-account})
-
-(def path-login ::path-login)
-
-(defn route-login [] 
-  {client.routing/path path-login})
+(defn login []
+  {client.routing/route-name ::login})

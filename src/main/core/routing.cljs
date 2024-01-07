@@ -11,13 +11,13 @@
 ;; 
 ;; 
 
-(spec/def ::path keyword?)
+(spec/def ::route-name keyword?)
 
-(spec/def ::route (spec/keys :req [::path]))
+(spec/def ::route (spec/keys :req [::route-name]))
 
-(def path ::path)
+(def route-name ::route-name)
 
-(def default-route {::path nil})
+(defn default-route [] {::route-name nil})
 
 ;; 
 ;; 
@@ -123,7 +123,7 @@
 (defn get-route! []
   (let [url (get-url!)
         route (url->route url)
-        route-final (or route default-route)]
+        route-final (or route (default-route))]
     route-final))
 
 (defn- put-route! [] 

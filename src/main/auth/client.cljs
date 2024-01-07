@@ -73,8 +73,8 @@
     (wire.client/send-to-server input to-server)))
 
 
-(defmethod client.routing/view-path 
-  auth.client.routes/path-login 
+(defmethod client.routing/view 
+  (auth.client.routes/login) 
   [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full.overflow-hidden 
 
@@ -117,9 +117,12 @@
       (assoc ::logging-out? true)))
 
 (defmethod core/on-msg ::clicked-polls-button [input]
-  (-> input (client.routing/push-route (vote.client.routes/route-polls))))
+  (-> input
+      (client.routing/push-route (vote.client.routes/polls))))
 
-(defmethod client.routing/view-path auth.client.routes/path-account [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view 
+  (auth.client.routes/account)
+  [{:keys [dispatch!] :as input}] 
   [:div.w-full.h-full.flex.flex-col
    [ui/top-bar {:title "Account"}] 
    
@@ -149,16 +152,16 @@
 
 (defn handle-auth-redirects [input]
   (let [auth-state (->auth-state input)
-        path (client.routing/->current-route-path input)] 
+        current-route (client.routing/->current-route input)] 
     (cond
       
       (and (= auth-state ::logged-in)
-           (= path auth.client.routes/path-login))
-      (client.routing/push-route input client.routing/default-route)
+           (= current-route (auth.client.routes/login)))
+      (client.routing/push-route input (client.routing/default-route))
       
       (and (= auth-state ::logged-out)
-           (not (= path auth.client.routes/path-login)))
-      (client.routing/push-route input (auth.client.routes/route-login)) 
+           (not= current-route (auth.client.routes/login)))
+      (client.routing/push-route input (auth.client.routes/login))
       
       :else
       input)))

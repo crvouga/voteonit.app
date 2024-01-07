@@ -27,23 +27,26 @@
 (defmethod core/on-init ::routing []
   {::current-route (core.routing/get-route!)})
 
-(def path core.routing/path)
+(def route-name core.routing/route-name)
 
-(defn ->current-route-path [input]
-  (-> input ::current-route path))
+(defn ->current-route-name [input]
+  (-> input ::current-route route-name))
 
-;; 
-;; 
-;; 
-;; 
-;; 
-;; 
-
-(defn push-route [input route] 
-  (core/add-eff input ::push-route {::new-route route}))
+(defn ->current-route [input]
+  (-> input ::current-route))
 
 
-(def default-route {path nil})
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defn push-route [input new-route] 
+  (core/add-eff input ::push-route {::new-route new-route}))
+
+(defn default-route [] {route-name nil})
 
 (defmethod core/on-eff! ::push-route [input] 
   (core.routing/push-route! (::new-route input))
@@ -80,13 +83,13 @@
 ;; 
 ;; 
 
-(defmulti view-path 
-  (fn [input] (-> input ::current-route path)))
+(defmulti view 
+  (fn [input] (-> input ::current-route)))
 
 (defmethod core/on-msg ::clicked-go-home-button [input]
-  (-> input (push-route default-route)))
+  (-> input (push-route (default-route))))
 
-(defmethod view-path :default [{:keys [dispatch!]}]
+(defmethod view :default [{:keys [dispatch!]}]
   [:div.w-full.h-full.flex.flex-col.justify-center.items-center.gap-6.p-6 
    [:p.text-4xl.font-bold.text-left.w-full "Page not found"]
    [ui/button

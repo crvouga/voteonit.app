@@ -24,7 +24,7 @@
 
 (defmethod core/on-msg ::clicked-account-button [input]
   (-> input 
-      (client.routing/push-route (auth.client.routes/route-account))))
+      (client.routing/push-route (auth.client.routes/account))))
 
 
 (defn view-polls-screen [{:keys [dispatch!]}]
@@ -38,12 +38,14 @@
      {:active :polls
       :on-account #(dispatch! {core/msg ::clicked-account-button})}]])
 
-(defmethod client.routing/view-path 
-  vote.client.routes/path-polls 
+(defmethod client.routing/view 
+  (vote.client.routes/polls)
   [input]
   [view-polls-screen input])
 
-(defmethod client.routing/view-path nil [input]
+(defmethod client.routing/view 
+  (client.routing/default-route)
+  [input]
   [view-polls-screen input])
 
 ;; 
