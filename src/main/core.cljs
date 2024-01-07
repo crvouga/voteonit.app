@@ -21,29 +21,14 @@
 
 (def msg ::msg)
 
-(defn ->msg [msg-type msg-payload] 
-   (merge msg-payload {::msg msg-type}))
-
 (def eff ::eff)
-
-(defn ->eff [eff-type eff-payload] 
-   (merge eff-payload {::eff eff-type}))
 
 (def cmd ::cmd)
 
-(defn ->cmd [cmd-type cmd-payload] 
-   (merge cmd-payload {::cmd cmd-type}))
-
 (def evt ::evt)
-
-(defn ->evt [evt-type evt-payload] 
-   (merge evt-payload {::evt evt-type}))
 
 (def module ::module)
 
-(defn- module-dispatch [input]
-  (when input (module input)))
-
 ;; 
 ;; 
 ;; 
@@ -52,13 +37,14 @@
 ;; 
 
 
-(defmulti on-init module-dispatch)
 
-(defmulti on-msg (fn [input] (msg input)))
+(defmulti on-init module)
 
-(defmulti on-eff! (fn [input] (eff input)))
+(defmulti on-msg msg)
 
-(defmulti msgs! module-dispatch)
+(defmulti on-eff! eff)
+
+(defmulti msgs! module)
 
 (defmulti on-cmd cmd)
 
@@ -96,8 +82,7 @@
     (msgs! (assoc input ::module module))))
 
 (defmethod msgs! :default [input] 
-  (println "Unhandled msgs!" (module-dispatch input)))
-
+  (println "Unhandled msgs!" (module input)))
 
 (defmethod on-eff! :default [input]
   (println "Unhandled eff!" (eff input))

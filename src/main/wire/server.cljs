@@ -102,25 +102,25 @@
               :session-id session-id}))
 
 
-(defn on-connect [dispatch! ^js socket]
+(defn on-connect! [dispatch! ^js socket!]
   (let [client-id (generate-client-id!)]
     
-    (swap! sockets-by-client-id assoc client-id socket)
+    (swap! sockets-by-client-id assoc client-id socket!)
     
-    (.on socket "session-id"
+    (.on socket! "session-id"
          (fn [session-id]
            (println "recieved session-id" session-id)
            (if (not (string? session-id))
-             (.emit socket "session-id" (generate-session-id!))
-             (listen-to-sever-msgs! socket dispatch! client-id session-id))))
+             (.emit socket! "session-id" (generate-session-id!))
+             (listen-to-sever-msgs! socket! dispatch! client-id session-id))))
 
-    (.on socket "disconnect" #(on-disconnect client-id))))
+    (.on socket! "disconnect" #(on-disconnect client-id))))
 
     
 (def socket-config {:cors {:origin "*"
                            :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
                            :credentials false}})
 
-(defmethod core/msgs! ::wire [{:keys [^js http-server dispatch!]}] 
-  (let [io (new socket-io/Server http-server (clj->js socket-config))]
-    (.on io "connection" #(on-connect dispatch! %))))
+(defmethod core/msgs! ::wire [{:keys [^js http-server! dispatch!]}] 
+  (let [io! (new socket-io/Server http-server! (clj->js socket-config))]
+    (.on io! "connection" #(on-connect! dispatch! %))))

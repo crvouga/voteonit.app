@@ -32,7 +32,7 @@
 ;; 
 ;; 
 
-(def state! (r/atom (core/on-init)))
+(def state! (r/atom (core/on-init {})))
 
 (defn dispatch! [msg]
   (core/step! state! msg))

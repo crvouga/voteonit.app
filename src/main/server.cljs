@@ -16,33 +16,37 @@
 ;; 
 ;; 
 
-(def app (express))
+(def app! (express))
 
 
 (def cors-config {:origin "*"
                   :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
                   :optionsSuccessStatus 200
                   :credentials false})
-(.use app (cors (clj->js cors-config)))
+(.use app! (cors (clj->js cors-config)))
 
 ;; 
+;; 
 ;; Static files
+;; 
 ;; 
 
 (def public-path "./public")
 (def serve-static-middleware (serve-static public-path))
-(.use app serve-static-middleware)
+(.use app! serve-static-middleware)
 
 (defn request-handler [_req res]
   (println "request-handler")
   (.end res "hello from server"))
-(.get app "*" request-handler)
+(.get app! "*" request-handler)
 
+;; 
 ;; 
 ;; Http Server
 ;; 
+;; 
 
-(def http-server (http/createServer app))
+(def http-server! (http/createServer app!))
 
 (defonce server-ref (volatile! nil))
 
@@ -60,18 +64,17 @@
 ;; 
 ;; 
 
-(def state! (atom (core/on-init)))
-
+(def state! (atom (core/on-init {})))
 
 (defn dispatch! [msg]
   (core/step! state! msg))
 
-
 (defn main []
   (println "[main] server starting")
-  (.listen http-server port on-listen)
-  (core/msgs! {:http-server http-server :dispatch! dispatch!})
-  (vreset! server-ref http-server))
+  (.listen http-server! port on-listen)
+  (core/msgs! {:http-server! http-server! 
+               :dispatch! dispatch!})
+  (vreset! server-ref http-server!))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn start []
