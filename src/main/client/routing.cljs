@@ -62,7 +62,6 @@
 
 (defmethod core/on-msg ::new-route [input]
   (let [new-route (-> input ::new-route)]
-    (println "current-route-changed" new-route)
     (-> input 
         (assoc ::current-route new-route))))
     
