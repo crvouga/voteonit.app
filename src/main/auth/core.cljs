@@ -18,4 +18,4 @@
 
 (def user-logged-in ::user-logged-in)
 
-(def current-user-account ::client-auth-account)
+(def current-user-account ::current-user-account)

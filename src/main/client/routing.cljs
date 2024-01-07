@@ -60,10 +60,13 @@
 ;; 
 ;; 
 
+(def route-changed ::route-changed)
+
 (defmethod core/on-msg ::new-route [input]
-  (let [new-route (-> input ::new-route)]
+  (let [new-current-route (-> input ::new-route)]
     (-> input 
-        (assoc ::current-route new-route))))
+        (assoc ::current-route new-current-route)
+        (core/add-evt route-changed {::route new-current-route}))))
     
 
 

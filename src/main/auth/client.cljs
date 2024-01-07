@@ -161,7 +161,7 @@
 
 (defmethod core/on-msg auth.core/current-user-account [input]
   (-> input
-      (assoc ::current-user-account (-> input core/msg :account))
+      (assoc ::current-user-account (-> input :account))
       (assoc ::loading-user-account? false)
       (assoc ::logging-out? false)))
 
@@ -174,7 +174,7 @@
 
 (defmethod core/on-msg auth.core/user-logged-in [input]
   (-> input
-      (assoc ::current-user-account (-> input core/msg :account))
+      (assoc ::current-user-account (-> input :account))
       (assoc ::logging-out? false)
       show-auth-state-toast))
 
@@ -186,6 +186,16 @@
         output (if redirect? redirected input)]
     output))
 
+(defmulti on-evt core/evt)
+
+(defmethod core/on-evt ::auth [input]
+  (on-evt input))
+
+(defmethod on-evt :default [input] input)
+
+(defmethod on-evt client.routing/route-changed [input]
+  (println "on-evt" input)
+  (-> input redirect-to-login-if-logged-out))
 
 ;; 
 ;; 

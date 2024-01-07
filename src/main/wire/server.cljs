@@ -36,7 +36,6 @@
 (def to-client-msgs-chan! (chan))
 
 (defmethod core/on-eff! ::send-to-client [input] 
-  (println "send-to-client" input)
   (put! to-client-msgs-chan! input)
   input)
 
@@ -76,7 +75,6 @@
           to-client-msgs-encoded (wire.core/edn-encode to-client-msgs)
           socket (get @sockets-by-client-id! client-id)
           emit (fn [^js socket] 
-                 (println "to-client-msgs" to-client-msgs-encoded)
                  (.emit socket "to-client-msgs" to-client-msgs-encoded))]
       (if socket
         (emit socket)
