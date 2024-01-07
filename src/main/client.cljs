@@ -19,8 +19,9 @@
 
 (defn view [input] 
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
-    {:style {:height "100dvh" :overflow "hidden"}}
-    [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative.overflow-hidden
+    {:style {:height "100dvh"}}
+    [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative.overflow-hidden.border.border-neutral-700
+     {:style {:max-height "900px"}}
      [client.toast/view input]
      [client.routing/view-path input]]])
 

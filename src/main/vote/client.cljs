@@ -1,6 +1,7 @@
 (ns vote.client
   (:require [client.routing]
             [ui.button]
+            [ui.topbar]
             [auth.client]
             [core]))
 
@@ -23,14 +24,14 @@
   (-> input 
       (client.routing/push-route (auth.client/route-account))))
 
-(defn route-polls []
-  {client.routing/path ::route-polls})
 
 (defn view-polls-screen [{:keys [dispatch!]}]
-  [:div "polls"
-  [ui.button/view 
-   {:text "Open account" 
-    :on-click #(dispatch! {core/msg ::clicked-open-account-button})}]])
+  [:div.w-full.h-full.flex.flex-col
+   [ui.topbar/view {:title "Polls"}]
+   [:div.flex-1.w-full.p-6
+    [ui.button/view 
+     {:text "Open account" 
+     :on-click #(dispatch! {core/msg ::clicked-open-account-button})}]]])
 
 (defmethod client.routing/view-path ::route-polls [input]
   [view-polls-screen input])

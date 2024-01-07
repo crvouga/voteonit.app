@@ -77,9 +77,8 @@
 
 
 (defmethod client.routing/view-path ::path-login [{:keys [dispatch!] :as input}] 
-  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full.overflow-hidden
-   #_[:pre (str "auth-state "(->auth-state input))]
-   
+  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full.overflow-hidden 
+
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
    [ui.textfield/view 
