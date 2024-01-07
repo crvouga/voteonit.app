@@ -16,7 +16,8 @@
 ;; 
 ;; 
 ;; 
-
+;; 
+;; 
 
 (core/register-module! ::auth)
 
@@ -34,15 +35,6 @@
    ::loading-user-account? true
    ::logging-out? false})
 
-;; 
-;; 
-;; 
-;; Toast
-;; 
-;; 
-;; 
-
-
 (defn ->auth-state [input]
   (cond
     (-> input ::loading-user-account?) ::loading
@@ -53,11 +45,31 @@
 ;; 
 ;; 
 ;; 
-;; Login Screen
+;; 
+;; Login
 ;; 
 ;; 
 ;; 
 ;; 
+;; 
+
+;; 
+;; 
+;; Login with email link
+;; 
+;; 
+
+(defn view-login-with-email-link [{:keys [dispatch!] :as input}]
+  [:<>
+   [ui/text-field
+    {:label "Email"
+     :value (::email input) 
+     core/msg :email
+     :on-value #(dispatch! {core/msg ::user-inputted-email ::inputted-email %})}]
+   
+   [ui/button
+    {:text "Send login link" 
+     :on-click #(dispatch! {core/msg auth.core/user-clicked-send-login-link-email})}]])
 
 (defmethod core/on-msg ::user-inputted-email [input]
   (assoc input ::email (input ::inputted-email)))
@@ -68,37 +80,80 @@
         output (wire.client/send-to-server input to-server)] 
     output))
 
+;; 
+;; 
+;; Login as guest
+;; 
+;; 
+
 (defmethod core/on-msg ::user-clicked-continue-as-guest [input]
   (let [to-server {core/msg auth.core/user-clicked-continue-as-guest}] 
     (wire.client/send-to-server input to-server)))
 
+(defn view-login-as-guest [{:keys [dispatch!] }]
+  [ui/button
+    {:text "Continue as guest"
+     :on-click #(dispatch! {core/msg ::user-clicked-continue-as-guest})}])
+
+
+;; 
+;; 
+;; Login Route
+;; 
+;; 
+
+(defmethod core/on-msg auth.core/user-logged-in [input]
+  (-> input
+      (assoc ::current-user-account (-> input :account))
+      (assoc ::logging-out? false)
+      (client.toast/show-toast (str "Logged in as " (-> input :account :username)))
+      (client.routing/push-route (client.routing/default-route))))
+
 
 (defmethod client.routing/view 
   (auth.client.routes/login) 
-  [{:keys [dispatch!] :as input}] 
+  [input] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full.overflow-hidden 
-
-   [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
-   
-   [ui/text-field
-    {:label "Email"
-     :value (::email input) 
-     core/msg :email
-     :on-value #(dispatch! {core/msg ::user-inputted-email ::inputted-email %})}]
-   
-   [ui/button
-    {:text "Send login link" 
-     :on-click #(dispatch! {core/msg auth.core/user-clicked-send-login-link-email})}]
-   
+   [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"] 
+   [view-login-with-email-link input] 
    [:p.text-neutral-500.lowercase.text-lg "or"]
-
-   [ui/button
-    {:text "Continue as guest"
-     :on-click #(dispatch! {core/msg ::user-clicked-continue-as-guest})}]])
+   [view-login-as-guest input]])
 
 
 
 ;; 
+;; 
+;; 
+;; 
+;; 
+;; Logout
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defn view-logout-button [{:keys [dispatch!] :as input}]
+  [ui/button
+     {:text "Logout"
+      :loading? (::logging-out? input)
+      :on-click #(dispatch! {core/msg ::clicked-logout-button})}])
+
+
+(defmethod core/on-msg ::clicked-logout-button [input]
+  (-> input
+      (wire.client/send-to-server {core/msg auth.core/user-clicked-logout-button})
+      (assoc ::logging-out? true)))
+
+
+(defmethod core/on-msg auth.core/user-logged-out [input]
+  (-> input
+      (assoc ::current-user-account nil)
+      (assoc ::logging-out? false)
+      (client.toast/show-toast "Logged out")
+      (client.routing/push-route (auth.client.routes/login))))
+
+
 ;; 
 ;; 
 ;; 
@@ -106,15 +161,6 @@
 ;; 
 ;; 
 ;; 
-;; 
-
-(defmethod core/on-msg ::clicked-account-screen-back-button [input]
-  (-> input client.routing/pop-route))
-
-(defmethod core/on-msg ::clicked-logout-button [input]
-  (-> input
-      (wire.client/send-to-server {core/msg auth.core/user-clicked-logout-button})
-      (assoc ::logging-out? true)))
 
 (defmethod core/on-msg ::clicked-polls-button [input]
   (-> input
@@ -127,28 +173,20 @@
    [ui/top-bar {:title "Account"}] 
    
    [:div.w-full.flex-1.flex.flex-col.gap-4.px-6
-    [ui/button 
-     {:text "Back" 
-      :on-click #(dispatch! {core/msg ::clicked-account-screen-back-button})}] 
-    
-    [ui/button
-     {:text "Logout"
-      :loading? (::logging-out? input)
-      :on-click #(dispatch! {core/msg ::clicked-logout-button})}]]
+    [view-logout-button input]]
    
    [client.app/bottom-bar 
     {:active :account
-     :on-polls #(dispatch! {core/msg ::clicked-polls-button})
-     :on-account #()}]])
+     :on-polls #(dispatch! {core/msg ::clicked-polls-button})}]])
 
 ;; 
 ;; 
 ;; 
-;; Current User
 ;; 
 ;; 
 ;; 
-
+;; 
+;; 
 
 (defn handle-auth-redirects [input]
   (let [auth-state (->auth-state input)
@@ -166,6 +204,14 @@
       :else
       input)))
 
+;; 
+;; 
+;; 
+;; Current User
+;; 
+;; 
+;; 
+
 (defmethod core/on-msg auth.core/current-user-account [input]
   (-> input
       (assoc ::current-user-account (-> input :account))
@@ -173,20 +219,14 @@
       (assoc ::logging-out? false)
       handle-auth-redirects))
 
-(defmethod core/on-msg auth.core/user-logged-out [input]
-  (-> input
-      (assoc ::current-user-account nil)
-      (assoc ::logging-out? false)
-      (client.toast/show-toast "Logged out")
-      handle-auth-redirects))
 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
 
-(defmethod core/on-msg auth.core/user-logged-in [input]
-  (-> input
-      (assoc ::current-user-account (-> input :account))
-      (assoc ::logging-out? false)
-      (client.toast/show-toast (str "Logged in as " (-> input :account :username)))
-      handle-auth-redirects))
 
 (defmulti on-evt core/evt)
 
