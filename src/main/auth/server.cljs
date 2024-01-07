@@ -50,9 +50,9 @@
      :username (str "Guest " user-id)}))
 
 (defn assoc-session [input user-account]
-  (let [{:keys [msg]} input
-        {:keys [client-id session-id]} msg
-        {:keys [user-id]} user-account]
+  (let [client-id (-> input :client-id)
+        session-id (-> input :session-id)
+        user-id (-> user-account :user-id)]
     (-> input
         (assoc-in [::session-id-by-client-id client-id] session-id)
         (update ::session-ids conj session-id)
@@ -60,8 +60,7 @@
         (assoc-in [::accounts-by-user-id user-id] user-account))))
 
 (defn dissoc-session [input]
-  (let [{:keys [msg]} input
-        {:keys [client-id session-id]} msg]
+  (let [{:keys [client-id session-id]} input]
     (-> input
         (update ::session-id-by-client-id dissoc client-id)
         (update ::session-ids disj session-id)
@@ -72,14 +71,14 @@
     (assoc-session input guest-account)))
 
 
-(defn to-user-account [input]
+(defn ->user-account [input]
   (let [session-id (-> input :session-id)
         user-id (-> input ::user-id-by-session-id (get session-id))
         account (-> input ::accounts-by-user-id (get user-id))]
     account))
 
 (defn send-logged-in [input]
-  (let [account (to-user-account input)
+  (let [account (->user-account input)
         client-id (-> input :client-id)
         to-client {core/msg auth.core/user-logged-in :account account}]
     (wire.server/send-to-client input client-id to-client)))
@@ -98,9 +97,12 @@
 
 
 (defmethod core/on-msg auth.core/user-clicked-continue-as-guest [input]
-  (-> input 
-      assoc-new-guest-session 
-      send-logged-in))
+  (let [current-user (->user-account input)]
+    (if current-user
+      (send-logged-in input)
+      (-> input 
+          assoc-new-guest-session 
+          send-logged-in))))
 
 (defmethod core/on-msg auth.core/user-clicked-logout-button [input] 
   (let [client-id (-> input :client-id)]
@@ -124,8 +126,9 @@
 
 (defmethod on-evt wire.server/client-connected [input]
   (let [client-id (-> input :client-id)
-        account (to-user-account input)
+        account (->user-account input)
         to-client {core/msg auth.core/current-user-account :account account}] 
+    (println "account" account)
     (wire.server/send-to-client input client-id to-client)))
 
 

@@ -26,27 +26,17 @@
 (defn route-polls []
   {client.routing/path ::route-polls})
 
-(defmethod client.routing/view ::route-polls [{:keys [dispatch!]}]
+(defn view-polls-screen [{:keys [dispatch!]}]
   [:div "polls"
   [ui.button/view 
    {:text "Open account" 
     :on-click #(dispatch! {core/msg ::clicked-open-account-button})}]])
 
-;; 
-;; 
-;; 
-;; 
+(defmethod client.routing/view-path ::route-polls [input]
+  [view-polls-screen input])
 
-(defmethod core/on-msg ::clicked-go-home-button [input]
-  (-> input (client.routing/push-route (route-polls))))
-
-(defmethod client.routing/view :default [{:keys [dispatch!]}]
-  [:div 
-   "Page not found"
-   [ui.button/view 
-    {:text "Go Home" 
-     :on-click #(dispatch! {core/msg ::clicked-go-home-button})}]])
-
+(defmethod client.routing/view-path nil [input]
+  [view-polls-screen input])
 
 ;; 
 ;; 

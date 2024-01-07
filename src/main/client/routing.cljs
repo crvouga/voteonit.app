@@ -42,6 +42,9 @@
 (defn push-route [input route] 
   (core/add-eff input ::push-route {::new-route route}))
 
+(defn push-route-default [input]
+  (push-route input {path nil}))
+
 (defmethod core/on-eff! ::push-route [input] 
   (core.routing/push-route! (::new-route input))
   input)
@@ -77,8 +80,18 @@
 ;; 
 ;; 
 
-(defmulti view 
-  (fn [input] (-> input ::current-route core.routing/path)))
+(defmulti view-path 
+  (fn [input] (-> input ::current-route path)))
+
+(defmethod core/on-msg ::clicked-go-home-button [input]
+  (-> input push-route-default))
+
+(defmethod view-path :default [{:keys [dispatch!]}]
+  [:div.w-full.h-full.flex.flex-col.justify-center.items-center.gap-6.p-6 
+   [:p.text-4xl.font-bold.text-left.w-full "Page not found"]
+   [ui.button/view 
+    {:text "Go Home" 
+     :on-click #(dispatch! {core/msg ::clicked-go-home-button})}]])
 
 ;; 
 ;; 

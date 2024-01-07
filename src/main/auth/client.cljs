@@ -40,30 +40,14 @@
 ;; 
 
 
-(defn to-auth-state [input]
+(defn ->auth-state [input]
   (cond
     (-> input ::loading-user-account?) ::loading
     (-> input ::current-user-account nil? not) ::logged-in
     :else ::logged-out))
 
 (defn logged-out? [input]
-  (= (to-auth-state input) ::logged-out))
-
-
-(defn to-toast-message [input]
-  (let [auth-state (to-auth-state input)]
-    (cond
-      (= auth-state ::logged-in) "Logged in"
-      (= auth-state ::logged-out) "Logged out"
-      :else nil)))
-
-(defn show-auth-state-toast [input]
-  (let [message (to-toast-message input)]
-    (if message
-      (client.toast/show-toast input message)
-      input)))
-
-
+  (= (->auth-state input) ::logged-out))
 
 ;; 
 ;; 
@@ -89,10 +73,12 @@
     (wire.client/send-to-server input to-server)))
 
 (defn route-login [] 
-  {client.routing/path ::route-login})
+  {client.routing/path ::path-login})
 
-(defmethod client.routing/view ::route-login [{:keys [dispatch!] :as input}] 
-  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
+
+(defmethod client.routing/view-path ::path-login [{:keys [dispatch!] :as input}] 
+  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full.overflow-hidden
+   [:pre (str "auth-state "(->auth-state input))]
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
    [ui.textfield/view 
@@ -132,9 +118,9 @@
       (assoc ::logging-out? true)))
 
 (defn route-account [] 
-  {client.routing/path ::route-account})
+  {client.routing/path ::path-account})
 
-(defmethod client.routing/view ::route-account [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view-path ::path-account [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
    
    [:p.text-xl.font-bold "Account"]
@@ -156,32 +142,42 @@
 ;; 
 ;; 
 
+
+(defn handle-auth-redirects [input]
+  (let [auth-state (->auth-state input)
+        path (client.routing/->current-route-path input)] 
+    (cond
+      
+      (and (= auth-state ::logged-in)
+           (= path ::path-login))
+      (client.routing/push-route-default input)
+      
+      (and (= auth-state ::logged-out)
+           (not (= path ::path-login)))
+      (client.routing/push-route input (route-login)) 
+      
+      :else
+      input)))
+
 (defmethod core/on-msg auth.core/current-user-account [input]
   (-> input
       (assoc ::current-user-account (-> input :account))
       (assoc ::loading-user-account? false)
-      (assoc ::logging-out? false)))
+      (assoc ::logging-out? false)
+      handle-auth-redirects))
 
 (defmethod core/on-msg auth.core/user-logged-out [input]
   (-> input
       (assoc ::current-user-account nil)
       (assoc ::logging-out? false)
-      (client.routing/push-route (route-login))
-      show-auth-state-toast))
+      handle-auth-redirects))
+
 
 (defmethod core/on-msg auth.core/user-logged-in [input]
   (-> input
       (assoc ::current-user-account (-> input :account))
       (assoc ::logging-out? false)
-      show-auth-state-toast))
-
-
-(defn redirect-to-login-if-logged-out [input]
-  (let [path (client.routing/->current-route-path input)
-        redirect? (and (logged-out? input) (not= path ::route-login))
-        redirected (client.routing/push-route input (route-login))
-        output (if redirect? redirected input)]
-    output))
+      handle-auth-redirects))
 
 (defmulti on-evt core/evt)
 
@@ -191,8 +187,7 @@
 (defmethod on-evt :default [input] input)
 
 (defmethod on-evt client.routing/route-changed [input]
-  (println "on-evt" input)
-  (-> input redirect-to-login-if-logged-out))
+  (-> input handle-auth-redirects))
 
 ;; 
 ;; 

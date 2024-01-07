@@ -19,10 +19,10 @@
 
 (defn view [input] 
    [:div.w-screen.flex.flex-col.items-center.justify-center.bg-neutral-900.text-white.overflow-hidden
-    {:style {:height "100dvh"}}
-    [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative
+    {:style {:height "100dvh" :overflow "hidden"}}
+    [:div.flex.flex-col.gap-4.w-full.max-w-md.h-full.relative.overflow-hidden
      [client.toast/view input]
-     [client.routing/view input]]])
+     [client.routing/view-path input]]])
 
 ;; 
 ;; 

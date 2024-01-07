@@ -13,6 +13,7 @@
  {:client
   {:target :browser
    :modules {:main {:init-fn client/main}}}
+  
   :server
   {:target :node-script
    :main server/main
