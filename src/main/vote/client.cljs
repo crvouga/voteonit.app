@@ -5,8 +5,17 @@
             [ui.icon]
             [auth.client.routes]
             [vote.client.routes]
+            [vote.create.client]
             [ui]
             [core]))
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
 
 (core/register-module! ::vote)
 
@@ -28,15 +37,13 @@
       (client.routing/push-route (auth.client.routes/account))))
 
 
-(defn view-polls-screen [{:keys [dispatch!]}]
+(defn view-polls-screen [{:keys [dispatch!] :as input}]
   [:div.flex.flex-col.h-full.w-full
    
    [ui/top-bar {:title "Polls"}]
    
    [:div.flex-1.w-full.p-6.flex.flex-col.relative
-    [:div.absolute.inset-0.flex.flex-col.items-end.justify-end.p-6.pointer-events-none
-     [:button.rounded-full.overflow-hidden.p-4.bg-blue-500.active:opacity-50.pointer-events-auto
-      [ui.icon/plus {:class "w-8 h-8 text-white"}]]]]
+    [vote.create.client/view-fab input]]
    
    [client.app/bottom-bar
      {:active :polls
