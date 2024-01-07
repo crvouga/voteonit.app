@@ -28,7 +28,7 @@
 (def client-connected ::client-connected)
 
 (defmethod core/on-msg ::client-connected [input]
-  (core/add-evt input (merge input {core/evt client-connected})))
+  (core/add-evt input client-connected (select-keys input [:client-id :session-id])))
 
 (defn send-to-client [input client-id & msgs]
   (core/add-eff input ::send-to-client {:client-id client-id :to-client-msgs msgs}))
@@ -36,12 +36,21 @@
 (def to-client-msgs-chan! (chan))
 
 (defmethod core/on-eff! ::send-to-client [input] 
-  (put! to-client-msgs-chan! (-> input core/eff))
+  (println "send-to-client" input)
+  (put! to-client-msgs-chan! input)
   input)
 
 (defmethod core/on-eff! ::broadcast [input]
   input)
 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+(defmethod core/on-evt ::wire [input] input)
 
 ;; 
 ;; 
@@ -63,12 +72,15 @@
   (while true
     (let [to-client (<! to-client-msgs-chan!)
           client-id (-> to-client :client-id)
-          msgs (-> to-client :to-client-msgs)
-          encoded-msgs (wire.core/edn-encode msgs)
+          to-client-msgs (-> to-client :to-client-msgs)
+          to-client-msgs-encoded (wire.core/edn-encode to-client-msgs)
           socket (get @sockets-by-client-id! client-id)
-          emit (fn [^js socket] (.emit socket "to-client-msgs" encoded-msgs))]
-      (when socket
-        (emit socket)))))
+          emit (fn [^js socket] 
+                 (println "to-client-msgs" to-client-msgs-encoded)
+                 (.emit socket "to-client-msgs" to-client-msgs-encoded))]
+      (if socket
+        (emit socket)
+        (println "No socket for client-id" client-id)))))
 
 ;; 
 ;; 

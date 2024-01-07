@@ -9,3 +9,5 @@
 
 
 (defmethod core/msgs! ::vote [])
+
+(defmethod core/on-evt ::vote [input] input)

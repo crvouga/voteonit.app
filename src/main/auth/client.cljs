@@ -34,16 +34,6 @@
 ;; 
 ;; 
 ;; 
-;; 
-;; 
-;; 
-
-(defmethod core/on-evt [::auth :something-happend] [input]
-  input)
-
-;; 
-;; 
-;; 
 ;; Toast
 ;; 
 ;; 
@@ -196,9 +186,6 @@
         output (if redirect? redirected input)]
     output))
 
-
-(defmethod core/on-evt [::auth :route-changed] [input]
-  (redirect-to-login-if-logged-out input))
 
 ;; 
 ;; 
