@@ -3,7 +3,8 @@
             [auth.core]
             [wire.server]
             [server.email]
-            [db]))
+            [db]
+            [auth.db]))
 
 ;; 
 ;; 
@@ -12,7 +13,6 @@
 ;; 
 ;; 
 ;; 
-
 
 
 (core/register-module! ::auth)
@@ -27,11 +27,7 @@
 
 
 (defmethod core/on-init ::auth []
-  {::session-id-by-client-id {}
-   ::user-id-by-session-id {}
-   ::session-ids #{}
-   ::accounts-by-user-id {}})
-
+  {})
 
 ;; 
 ;; 
@@ -39,50 +35,25 @@
 ;; 
 ;; 
 ;; 
-  
-(defn user-id! []
-  (str "user-id:" (rand-int 1000000)))
-
-(defn generate-guest-account! []
-  (let [user-id (user-id!)]
-    {:user-id user-id
-     :username (str "Guest " user-id)}))
-
-(defn assoc-session [input user-account]
-  (let [client-id (-> input :client-id)
-        session-id (-> input :session-id)
-        user-id (-> user-account :user-id)]
-    (-> input
-        (assoc-in [::session-id-by-client-id client-id] session-id)
-        (update ::session-ids conj session-id)
-        (assoc-in [::user-id-by-session-id  session-id] user-id)
-        (assoc-in [::accounts-by-user-id user-id] user-account))))
-
-(defn dissoc-session [input]
-  (let [client-id (-> input :client-id)
-        session-id (-> input :session-id)]
-    (println "dissoc-session" (::session-ids input)  client-id session-id)
-    (-> input
-        (update ::session-id-by-client-id dissoc client-id)
-        (update ::session-ids disj session-id)
-        (update ::user-id-by-session-id dissoc session-id))))
-
-(defn assoc-new-guest-session [input]
-  (let [guest-account (generate-guest-account!)]
-    (assoc-session input guest-account)))
-
-
-(defn ->user-account [input]
-  (let [session-id (-> input :session-id)
-        user-id (-> input ::user-id-by-session-id (get session-id))
-        account (-> input ::accounts-by-user-id (get user-id))]
-    account))
 
 (defn send-logged-in [input]
-  (let [account (->user-account input)
+  (let [user-account (auth.db/find-one-user-account-by-session-id db/conn (-> input :session-id))
         client-id (-> input :client-id)
-        to-client {core/msg auth.core/user-logged-in :account account}]
-    (wire.server/send-to-client input client-id to-client)))
+        to-client {core/msg auth.core/user-logged-in :user-account user-account}]
+    (-> input
+        (wire.server/send-to-client client-id to-client))))
+
+(defn add-new-guest-session! [input]
+  (let [guest-user-account (auth.db/guest-user-account!)]
+    (auth.db/add-guest-user-account! db/conn guest-user-account)
+    (auth.db/add-user-session! db/conn input guest-user-account)
+    input)) 
+
+(defmethod core/on-msg auth.core/user-clicked-continue-as-guest [input]
+  (let [user-account (auth.db/find-one-user-account-by-session-id db/conn (-> input :session-id))]
+    (if user-account
+      (send-logged-in input)
+      (-> input add-new-guest-session! send-logged-in))))
 
 ;; 
 ;; 
@@ -98,19 +69,26 @@
   input)
 
 
-(defmethod core/on-msg auth.core/user-clicked-continue-as-guest [input]
-  (let [current-user (->user-account input)]
-    (if current-user
-      (send-logged-in input)
-      (-> input 
-          assoc-new-guest-session 
-          send-logged-in))))
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
+
+
+(defn remove-session! [input]
+  (auth.db/remove-user-session! db/conn input)
+  input)
 
 (defmethod core/on-msg auth.core/user-clicked-logout-button [input] 
-  (let [client-id (-> input :client-id)]
+  (let [client-id (-> input :client-id)
+        to-client {core/msg auth.core/user-logged-out}]
     (-> input
-        dissoc-session
-        (wire.server/send-to-client client-id {core/msg auth.core/user-logged-out}))))
+        remove-session!
+        (wire.server/send-to-client client-id to-client))))
 
 ;; 
 ;; 
@@ -128,10 +106,10 @@
 
 (defmethod on-evt wire.server/client-connected [input]
   (let [client-id (-> input :client-id)
-        account (->user-account input)
-        to-client {core/msg auth.core/current-user-account :account account}] 
-    (println "account" account)
-    (wire.server/send-to-client input client-id to-client)))
+        user-account (auth.db/find-one-user-account-by-session-id db/conn (-> input :session-id))
+        to-client {core/msg auth.core/current-user-account :user-account user-account}] 
+    (-> input
+        (wire.server/send-to-client client-id to-client))))
 
 
 ;; 

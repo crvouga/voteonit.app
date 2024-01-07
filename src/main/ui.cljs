@@ -127,6 +127,14 @@
 ;; 
 
 (defn avatar [{:keys [seed class]}]
-  [:img {:class (str "rounded overflow-hidden" class) 
-         :src (str "https://api.dicebear.com/7.x/thumbs/svg?seed=" seed)
-         :alt "avatar"}])
+  (println "seed" seed)
+  (cond 
+    (nil? seed) 
+    [:div.rounded.overflow-hidden.bg-neutral-800
+     {:class class}]
+
+    :else
+    [:img.rounded.overflow-hidden 
+     {:class class
+      :src (str "https://api.dicebear.com/7.x/thumbs/svg?seed=" seed)
+      :alt "avatar"}]))

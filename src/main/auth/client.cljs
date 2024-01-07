@@ -105,9 +105,9 @@
 
 (defmethod core/on-msg auth.core/user-logged-in [input]
   (-> input
-      (assoc ::current-user-account (-> input :account))
+      (assoc ::current-user-account (-> input :user-account))
       (assoc ::logging-out? false)
-      (client.toast/show-toast (str "Logged in as " (-> input :account :username)))
+      (client.toast/show-toast (str "Logged in as " (-> input :user-account :user-account/username)))
       (client.routing/push-route (client.routing/default-route))))
 
 
@@ -167,17 +167,22 @@
   (-> input
       (client.routing/push-route (vote.client.routes/polls))))
 
+(defn ->current-username [input]
+  (-> input ::current-user-account :user-account/username))
+
 (defmethod client.routing/view 
   (auth.client.routes/account)
   [{:keys [dispatch!] :as input}] 
   [:div.w-full.h-full.flex.flex-col
    [ui/top-bar {:title "Account"}] 
    
-   [:div.w-full.flex-1.flex.flex-col.gap-4.p-6
+   [:div.w-full.flex-1.flex.flex-col.gap-4.p-6.items-center
     
-    [ui/avatar {:seed (-> ::current-user-account :username) :class "w-32 h-32"}]
+    [ui/avatar {:seed (->current-username input) :class "w-32 h-32"}]
     
-    [:p.text-2xl.font-bold.text-center.w-full (-> input ::current-user-account :username)]
+    [:p.text-2xl.font-bold.text-center.w-full 
+     {:class (when (nil? (->current-username input)) "text-transparent")}
+     (or (->current-username input) "...")]
 
     [view-logout-button input]]
    
@@ -220,7 +225,7 @@
 
 (defmethod core/on-msg auth.core/current-user-account [input]
   (-> input
-      (assoc ::current-user-account (-> input :account))
+      (assoc ::current-user-account (-> input :user-account))
       (assoc ::loading-user-account? false)
       (assoc ::logging-out? false)
       handle-auth-redirects))
