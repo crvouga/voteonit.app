@@ -1,7 +1,7 @@
 (ns client.routing
   (:require [cljs.core.async :as async]
             [core.routing]
-            [ui.button]
+            [ui]
             [clojure.string]
             [clojure.edn]
             [core]))
@@ -89,7 +89,7 @@
 (defmethod view-path :default [{:keys [dispatch!]}]
   [:div.w-full.h-full.flex.flex-col.justify-center.items-center.gap-6.p-6 
    [:p.text-4xl.font-bold.text-left.w-full "Page not found"]
-   [ui.button/view 
+   [ui/button
     {:text "Go Home" 
      :on-click #(dispatch! {core/msg ::clicked-go-home-button})}]])
 

@@ -1,10 +1,13 @@
 (ns auth.client
-  (:require [ui.textfield]
-            [ui.button]
+  (:require [ui]
             [auth.core]
             [client.routing]
+            [auth.client.routes]
+            [vote.client.routes]
             [wire.client]
             [client.toast]
+            [client.app]
+            [vote.core]
             [core]))
 
 
@@ -69,28 +72,27 @@
   (let [to-server {core/msg auth.core/user-clicked-continue-as-guest}] 
     (wire.client/send-to-server input to-server)))
 
-(defn route-login [] 
-  {client.routing/path ::path-login})
 
-
-(defmethod client.routing/view-path ::path-login [{:keys [dispatch!] :as input}] 
+(defmethod client.routing/view-path 
+  auth.client.routes/path-login 
+  [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full.overflow-hidden 
 
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
-   [ui.textfield/view 
+   [ui/text-field
     {:label "Email"
      :value (::email input) 
      core/msg :email
      :on-value #(dispatch! {core/msg ::user-inputted-email ::inputted-email %})}]
    
-   [ui.button/view 
+   [ui/button
     {:text "Send login link" 
      :on-click #(dispatch! {core/msg auth.core/user-clicked-send-login-link-email})}]
    
    [:p.text-neutral-500.lowercase.text-lg "or"]
 
-   [ui.button/view 
+   [ui/button
     {:text "Continue as guest"
      :on-click #(dispatch! {core/msg ::user-clicked-continue-as-guest})}]])
 
@@ -114,22 +116,27 @@
       (wire.client/send-to-server {core/msg auth.core/user-clicked-logout-button})
       (assoc ::logging-out? true)))
 
-(defn route-account [] 
-  {client.routing/path ::path-account})
+(defmethod core/on-msg ::clicked-polls-button [input]
+  (-> input (client.routing/push-route (vote.client.routes/route-polls))))
 
-(defmethod client.routing/view-path ::path-account [{:keys [dispatch!] :as input}] 
-  [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full
+(defmethod client.routing/view-path auth.client.routes/path-account [{:keys [dispatch!] :as input}] 
+  [:div.w-full.h-full.flex.flex-col
+   [ui/top-bar {:title "Account"}] 
    
-   [:p.text-xl.font-bold "Account"]
+   [:div.w-full.flex-1.flex.flex-col.gap-4.px-6
+    [ui/button 
+     {:text "Back" 
+      :on-click #(dispatch! {core/msg ::clicked-account-screen-back-button})}] 
+    
+    [ui/button
+     {:text "Logout"
+      :loading? (::logging-out? input)
+      :on-click #(dispatch! {core/msg ::clicked-logout-button})}]]
    
-   [ui.button/view 
-    {:text "Back" 
-     :on-click #(dispatch! {core/msg ::clicked-account-screen-back-button})}]
-   
-   [ui.button/view 
-    {:text "Logout"
-     :loading? (::logging-out? input)
-     :on-click #(dispatch! {core/msg ::clicked-logout-button})}]])
+   [client.app/bottom-bar 
+    {:active :account
+     :on-polls #(dispatch! {core/msg ::clicked-polls-button})
+     :on-account #()}]])
 
 ;; 
 ;; 
@@ -146,12 +153,12 @@
     (cond
       
       (and (= auth-state ::logged-in)
-           (= path ::path-login))
+           (= path auth.client.routes/path-login))
       (client.routing/push-route input client.routing/default-route)
       
       (and (= auth-state ::logged-out)
-           (not (= path ::path-login)))
-      (client.routing/push-route input (route-login)) 
+           (not (= path auth.client.routes/path-login)))
+      (client.routing/push-route input (auth.client.routes/route-login)) 
       
       :else
       input)))

@@ -2,13 +2,9 @@
 
 (def user-clicked-send-login-link-email ::user-clicked-send-login-link-email)
 
-(def email ::email)
-
 (defn ->user-clicked-send-login-link-email [email]
   {:core/msg user-clicked-send-login-link-email
    ::email email})
-
-
 
 (def user-clicked-continue-as-guest ::user-clicked-continue-as-guest)
 

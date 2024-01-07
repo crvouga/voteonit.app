@@ -149,20 +149,23 @@
 
 (defmulti print-msg (fn [input] (first (filter input [msg cmd eff evt]))))
 
+(defn ->payload [input]
+  (dissoc (apply dissoc input (keys (on-init {}))) ::msg ::module ::evt ::eff ::cmd))
+
 (defmethod print-msg cmd [input]
-  (println (str "[cmd] " (pr-str (-> input cmd)) "\n")))
+  (println (str "[cmd] " (-> input cmd) " " #_(->payload input) "\n")))
 
 (defmethod print-msg msg [input]
-  (println (str "[msg] " (pr-str (-> input msg)) "\n")))
+  (println (str "[msg] " (-> input msg) " " #_(->payload input) "\n")))
 
 (defmethod print-msg eff [input]
-  (println (str "[eff] " (pr-str (-> input eff)) "\n")))
+  (println (str "[eff] " (-> input eff) " " #_(->payload input) "\n")))
 
 (defmethod print-msg evt [input]
-  (println (str "[evt] " (pr-str (-> input evt)) "\n")))
+  (println (str "[evt] " (-> input evt) " " #_(->payload input) "\n")))
 
 (defmethod print-msg :default [input]
-  (println (str "[unknown] " (pr-str input) "\n")))
+  (println (str "[unknown] " input) " " #_(->payload input) "\n"))
 
 ;; 
 ;; 
