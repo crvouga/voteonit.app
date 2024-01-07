@@ -46,9 +46,6 @@
     (-> input ::current-user-account nil? not) ::logged-in
     :else ::logged-out))
 
-(defn logged-out? [input]
-  (= (->auth-state input) ::logged-out))
-
 ;; 
 ;; 
 ;; 
@@ -170,6 +167,7 @@
   (-> input
       (assoc ::current-user-account nil)
       (assoc ::logging-out? false)
+      (client.toast/show-toast "Logged out")
       handle-auth-redirects))
 
 
@@ -177,6 +175,7 @@
   (-> input
       (assoc ::current-user-account (-> input :account))
       (assoc ::logging-out? false)
+      (client.toast/show-toast (str "Logged in as " (-> input :account :username)))
       handle-auth-redirects))
 
 (defmulti on-evt core/evt)
