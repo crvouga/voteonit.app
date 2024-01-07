@@ -42,8 +42,8 @@
 (defn push-route [input route] 
   (core/add-eff input ::push-route {::new-route route}))
 
-(defn push-route-default [input]
-  (push-route input {path nil}))
+
+(def default-route {path nil})
 
 (defmethod core/on-eff! ::push-route [input] 
   (core.routing/push-route! (::new-route input))
@@ -84,7 +84,7 @@
   (fn [input] (-> input ::current-route path)))
 
 (defmethod core/on-msg ::clicked-go-home-button [input]
-  (-> input push-route-default))
+  (-> input (push-route default-route)))
 
 (defmethod view-path :default [{:keys [dispatch!]}]
   [:div.w-full.h-full.flex.flex-col.justify-center.items-center.gap-6.p-6 

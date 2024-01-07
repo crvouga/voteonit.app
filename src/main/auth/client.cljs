@@ -78,7 +78,8 @@
 
 (defmethod client.routing/view-path ::path-login [{:keys [dispatch!] :as input}] 
   [:div.flex.flex-col.gap-4.items-center.justify-center.w-full.p-6.h-full.overflow-hidden
-   [:pre (str "auth-state "(->auth-state input))]
+   #_[:pre (str "auth-state "(->auth-state input))]
+   
    [:h1.text-5xl.font-bold.w-full.text-left.text-blue-500 "voteonit.app"]
    
    [ui.textfield/view 
@@ -150,7 +151,7 @@
       
       (and (= auth-state ::logged-in)
            (= path ::path-login))
-      (client.routing/push-route-default input)
+      (client.routing/push-route input client.routing/default-route)
       
       (and (= auth-state ::logged-out)
            (not (= path ::path-login)))
