@@ -47,7 +47,7 @@
   input)
 
 (defn pop-route [input]
-  (core/add-eff input ::pop-route))
+  (core/add-eff input ::pop-route {}))
 
 (defmethod core/on-eff! ::pop-route [input]
   (core.routing/pop-route!)

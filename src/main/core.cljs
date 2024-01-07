@@ -115,16 +115,12 @@
 ;; 
 ;; 
 
-(defn add-eff 
-  ([input effect-type] 
-   (add-eff input effect-type {}))
-  
-  ([input effect-type effect-payload]
-   (let [eff-new (merge {::eff effect-type} effect-payload)
-         effs-prev (->effs input)
-         effs-new (conj effs-prev eff-new)
-         output (assoc input ::effs effs-new)]
-     output)))
+(defn add-eff [input effect-type effect-payload]
+  (let [eff-new (merge {::eff effect-type} effect-payload)
+        effs-prev (->effs input)
+        effs-new (conj effs-prev eff-new)
+        output (assoc input ::effs effs-new)]
+    output))
 
 (defn add-cmd [input command]
   (update input ::cmds conj command))
@@ -156,6 +152,13 @@
 
 (defmethod print-msg :default [input]
   (println (str "[msg] " (pr-str input) "\n")))
+
+;; 
+;; 
+;; 
+;; 
+;; 
+;; 
 
 
 (defn dissoc-outputs [input]

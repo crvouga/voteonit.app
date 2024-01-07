@@ -1,7 +1,6 @@
 (ns server
   (:require ["http" :as http]
             ["serve-static" :as serve-static]
-            ["cors" :as cors]
             [core]
             ["express" :as express]
             [wire.server]
@@ -17,13 +16,6 @@
 ;; 
 
 (def app! (express))
-
-
-(def cors-config {:origin "*"
-                  :methods ["GET" "POST" "DELETE" "OPTIONS" "PUT" "PATCH"]
-                  :optionsSuccessStatus 200
-                  :credentials false})
-(.use app! (cors (clj->js cors-config)))
 
 ;; 
 ;; 
@@ -46,17 +38,16 @@
 ;; 
 ;; 
 
-(def http-server! (http/createServer app!))
-
-(defonce server-ref (volatile! nil))
-
 (def port-env (-> js/process.env .-PORT))
 (def port (if port-env (js/parseInt port-env) 3000))
 
 (defn on-listen [err]
   (if err
     (println "server start failed" err)
-    (println "http server running on port" port)))
+    (println "[http-server] Running on port" port)))
+
+(defn listen! [^js http-server!]
+  (.listen http-server! port on-listen))
 
 ;; 
 ;; 
@@ -69,9 +60,13 @@
 (defn dispatch! [msg]
   (core/step! state! msg))
 
+(def http-server! (http/createServer app!))
+
+(defonce server-ref (volatile! nil))
+
 (defn main []
   (println "[main] server starting")
-  (.listen http-server! port on-listen)
+  (listen! http-server!)
   (core/msgs! {:http-server! http-server! 
                :dispatch! dispatch!})
   (vreset! server-ref http-server!))

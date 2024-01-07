@@ -6,3 +6,6 @@
 
 (defmethod core/on-init ::vote []
   {::polls-by-id {}})
+
+
+(defmethod core/msgs! ::vote [])

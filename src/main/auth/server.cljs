@@ -115,10 +115,11 @@
 ;; 
 ;; 
 
-
-
 (defmethod core/on-evt [::auth wire.server/client-connected] [input]
   (let [client-id (-> input core/evt :client-id)
         account (to-user-account input)
         to-client {core/msg auth.core/current-user-account :account account}] 
     (wire.server/send-to-client input client-id to-client)))
+
+
+(defmethod core/msgs! ::auth [])
