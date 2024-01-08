@@ -15,8 +15,7 @@
 
 
 (defn encode-db [db]
-  ;; https://stackoverflow.com/questions/32107313/pretty-print-to-a-string-in-clojurescript
-  (with-out-str (cljs.pprint/pprint db)))
+  (pr-str db))
 
 (defn decode-db [encoded-db]
   (clojure.edn/read-string
