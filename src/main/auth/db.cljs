@@ -83,6 +83,7 @@
 ;; 
 ;; 
 ;; 
+;; https://cljdoc.org/d/datascript/datascript/1.5.0/api/datascript.core#transact
 
 (defn add-user-session! [conn input user-account]
   (let [user-id (-> user-account :user-account/user-id)
