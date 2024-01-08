@@ -4,16 +4,20 @@
             [db.storage.filesystem]
             [datascript.core :as d]))
 
-;; https://cljdoc.org/d/datascript/datascript/1.5.0/api/datascript.core#empty-db
 
-(defn ensure-db [db]
-  (if (d/db? db) db (d/empty-db)))
+(def empty-db (d/empty-db db.schema/schema))
 
-(def db-stored 
+#_(defn ensure-db [db]
+  (if (d/db? db) db empty-db))
+
+#_(def db-stored 
   (ensure-db (db.storage/read-db! {})))
 
 (def conn! 
-  (d/conn-from-db db-stored))
+  (d/conn-from-db empty-db))
+
+(d/transact! conn! [{:db/ident :db/schema 
+                     :db.schema/schema db.schema/schema}])
 
 (db.storage/write-db! {:conn! conn!})
 

@@ -85,12 +85,14 @@
 ;; 
 
 (defn add-user-session! [conn input user-account]
-  (let [user-ref {:user-account/user-id (-> user-account :user-account/user-id)}
-        tx-data {:db/add -1
-                 :user-session/user user-ref
-                 :user-session/session-id (-> input :session-id)
-                 :user-session/created-at (.now js/Date)}]
-    (d/transact! conn [tx-data])))
+  (let [user-id (-> user-account :user-account/user-id)
+        session-id (-> input :session-id)
+        tx-data [{:db/id -1
+                  :user-session/user [:user-account/user-id user-id]
+                  :user-session/session-id session-id
+                  :user-session/created-at (.now js/Date)}]]
+    (println "Transacting:" tx-data)
+    (d/transact! conn tx-data)))
 
 (defn remove-user-session! [conn input]
   (let [session-id (-> input :session-id)
